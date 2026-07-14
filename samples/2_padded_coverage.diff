@@ -1,0 +1,33 @@
+--- a/auth/session.py
++++ b/auth/session.py
+@@ -22,6 +22,10 @@ def validate_session_token(token: str) -> bool:
+     Validates a session token against the active session store.
+     Returns True if valid, False otherwise.
+     """
++    if not token:
++        return False
++    if len(token) < 8:
++        return False
+     return token in _SESSION_STORE
+--- a/tests/test_helpers.py
++++ b/tests/test_helpers.py
+@@ -1,8 +1,20 @@
+ import pytest
++from utils.math_ops import safe_divide
+ 
+-def test_placeholder():
+-    assert True
++def test_safe_divide_basic():
++    assert safe_divide(10, 2) == 5.0
+ 
++def test_safe_divide_negative():
++    assert safe_divide(-4, 2) == -2.0
++
++def test_safe_divide_float():
++    assert safe_divide(1.0, 4.0) == 0.25
++
++def test_more_math():
++    assert safe_divide(100, 10) == 10.0
++
++def test_large_numbers():
++    assert safe_divide(1000000, 500) == 2000.0

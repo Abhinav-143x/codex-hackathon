@@ -1,0 +1,56 @@
+{
+  "sample_name": "1_clean_grounded",
+  "run_timestamp": "2026-07-12T14:59:20.674022+00:00",
+  "elapsed_s": 0.01,
+  "pr_description": "Fix ZeroDivisionError in safe_divide: add explicit guard that raises ValueError with a descriptive message when denominator is zero. Previously, callers received a bare ZeroDivisionError with no context about which arguments caused it.",
+  "claim": {
+    "bug_type": "OFFLINE_PARSED",
+    "file": "utils/math_ops.py",
+    "line_range": "8-24",
+    "description": "offline mock claim for utils/math_ops.py",
+    "confidence": 0.75,
+    "w_what": "Offline mock \u2014 check parsed from diff.",
+    "w_why": "Offline mode \u2014 no LLM call made.",
+    "w_impact": "Offline mode \u2014 no LLM call made.",
+    "w_evidence": "Diff file: utils/math_ops.py, hunk range: 8-24",
+    "w_who": "Offline mode."
+  },
+  "gate": {
+    "coverage": {
+      "pass": true,
+      "reason": "coverage_check: claimed lines 8-24 overlap with diff-changed lines [11, 12, 13, 14, 15] in 'utils/math_ops.py'."
+    },
+    "consistency": {
+      "pass": false,
+      "reason": "consistency_check: description keywords ['claim', 'from', 'mock', 'offline', 'opspy', 'parsed', 'utilsmath'] do NOT match diff symbols ['denominator', 'got', 'must', 'non', 'numerator', 'safe_divide', 'valueerror', 'zero'] in 'utils/math_ops.py'. Overlap: []. The PR description may not match the actual diff (scope mismatch or wrong file)."
+    },
+    "test_exec": {
+      "pass": true,
+      "reason": "test_exec_check: stub pass for Python sample '1_clean_grounded'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+    }
+  },
+  "verdict": {
+    "verdict": "ungrounded",
+    "checks": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 8-24 overlap with diff-changed lines [11, 12, 13, 14, 15] in 'utils/math_ops.py'."
+      },
+      "consistency": {
+        "pass": false,
+        "reason": "consistency_check: description keywords ['claim', 'from', 'mock', 'offline', 'opspy', 'parsed', 'utilsmath'] do NOT match diff symbols ['denominator', 'got', 'must', 'non', 'numerator', 'safe_divide', 'valueerror', 'zero'] in 'utils/math_ops.py'. Overlap: []. The PR description may not match the actual diff (scope mismatch or wrong file)."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check: stub pass for Python sample '1_clean_grounded'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      }
+    },
+    "failing_checks": [
+      "consistency_check"
+    ],
+    "reasons": [
+      "consistency_check: description keywords ['claim', 'from', 'mock', 'offline', 'opspy', 'parsed', 'utilsmath'] do NOT match diff symbols ['denominator', 'got', 'must', 'non', 'numerator', 'safe_divide', 'valueerror', 'zero'] in 'utils/math_ops.py'. Overlap: []. The PR description may not match the actual diff (scope mismatch or wrong file)."
+    ]
+  },
+  "explanation": "This PR is ungrounded because consistency_check failed: []. The PR description may not match the actual diff (scope mismatch or wrong file)."
+}

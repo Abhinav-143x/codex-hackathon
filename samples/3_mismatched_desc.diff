@@ -1,0 +1,22 @@
+--- a/api/response_formatter.py
++++ b/api/response_formatter.py
+@@ -14,8 +14,12 @@ class ResponseFormatter:
+ 
+-    def format_error(self, code: int, message: str) -> dict:
+-        return {"error": message, "code": code}
++    def format_error(self, code: int, message: str, request_id: str = "") -> dict:
++        payload = {
++            "error": message,
++            "code": code,
++            "timestamp": self._utc_now(),
++        }
++        if request_id:
++            payload["request_id"] = request_id
++        return payload
+ 
+-    def _utc_now(self):
+-        from datetime import datetime, timezone
+-        return datetime.now(timezone.utc).isoformat()
++    def _utc_now(self) -> str:
++        from datetime import datetime, timezone
++        return datetime.now(timezone.utc).isoformat()

@@ -1,0 +1,218 @@
+﻿diff --git a/test/lib/commands/ci.js b/test/lib/commands/ci.js
+index e5639c3e04f8d..15559dc688b09 100644
+--- a/test/lib/commands/ci.js
++++ b/test/lib/commands/ci.js
+@@ -150,6 +150,37 @@ t.test('--no-audit and --ignore-scripts', async t => {
+   t.match(joinedOutput(), 'added 1 package in', 'would fail if install script ran')
+ })
+ 
++t.test('allow-remote=none blocks same-host tarball outside registry path', async t => {
++  const token = 'test-path-token'
++  const registryUrl = 'https://registry.example.com/npm/'
++  const evilTarball = 'https://registry.example.com/evil/abbrev-1.0.0.tgz'
++  const lock = JSON.parse(JSON.stringify(packageLock))
++  lock.packages['node_modules/abbrev'].resolved = evilTarball
++  lock.dependencies.abbrev.resolved = evilTarball
++
++  const { npm } = await loadMockNpm(t, {
++    config: {
++      audit: false,
++      'allow-remote': 'none',
++      registry: registryUrl,
++      [`//registry.example.com/npm/:_authToken`]: token,
++    },
++    prefixDir: {
++      abbrev,
++      'package.json': JSON.stringify(packageJson),
++      'package-lock.json': JSON.stringify(lock),
++    },
++  })
++
++  await t.rejects(
++    npm.exec('ci', []),
++    { code: 'EALLOWREMOTE' },
++    'sibling-path tarball is blocked by allow-remote=none'
++  )
++  const nmAbbrev = path.join(npm.prefix, 'node_modules', 'abbrev')
++  t.equal(fs.existsSync(nmAbbrev), false, 'does not install tarball outside configured registry path')
++})
++
+ t.test('lifecycle scripts', async t => {
+   const scripts = []
+   const { npm, registry } = await loadMockNpm(t, {
+diff --git a/workspaces/arborist/lib/arborist/reify.js b/workspaces/arborist/lib/arborist/reify.js
+index 40e6c1853287d..aced227bb3094 100644
+--- a/workspaces/arborist/lib/arborist/reify.js
++++ b/workspaces/arborist/lib/arborist/reify.js
+@@ -844,17 +844,18 @@ module.exports = cls => class Reifier extends cls {
+ 
+   // When extracting a registry-resolved package, the spec we hand to pacote is name@URL.
+   // pacote re-parses that with npa and gets spec.type === 'remote', so without an override the allow-remote gate would fire on every registry tarball (both =none and =root mis-fire).
+-  // Returns true only when we are confident this is a registry-mediated install: the node's inbound edges must all be registry-typed (no exotic spec smuggled the URL in) AND the resolved URL's host must match the registry npm-registry-fetch selected for this spec, so a tampered lockfile pointing at an attacker host still hits the gate.
++  // Returns true only when we are confident this is a registry-mediated install.
+   #isRegistryResolvedTarball (node) {
+     if (!node.resolved || !node.isRegistryDependency) {
+       return false
+     }
+     try {
+-      // Hostnames are case-insensitive; lowercase both sides for safety even though WHATWG URL already normalizes.
+-      const resolvedHost = new URL(node.resolved).hostname.toLowerCase()
++      const resolved = new URL(node.resolved)
+       // pickRegistry only consults spec.scope, so a bare-name (tag) parse is sufficient and avoids a node.version dependency.
+-      const registryHost = new URL(pickRegistry(npa(node.name), this.options)).hostname.toLowerCase()
+-      return resolvedHost === registryHost
++      const registry = new URL(pickRegistry(npa(node.name), this.options))
++      const registryPath = registry.pathname.replace(/\/?$/, '/')
++      return resolved.origin === registry.origin &&
++        (registryPath === '/' || resolved.pathname.startsWith(registryPath))
+     } catch {
+       return false
+     }
+diff --git a/workspaces/arborist/test/arborist/reify.js b/workspaces/arborist/test/arborist/reify.js
+index c483bbc54608c..f0f033a1ea8e2 100644
+--- a/workspaces/arborist/test/arborist/reify.js
++++ b/workspaces/arborist/test/arborist/reify.js
+@@ -3717,6 +3717,143 @@ t.test('should preserve exact ranges, missing actual tree', async (t) => {
+     await t.resolves(arb.reify(), 'reify should complete successfully')
+   })
+ 
++  t.test('allowRemote=none allows registry tarball under registry path without trailing slash', async t => {
++    const abbrevPackument5 = JSON.stringify({
++      _id: 'abbrev',
++      _rev: 'lkjadflkjasdf',
++      name: 'abbrev',
++      'dist-tags': { latest: '1.1.1' },
++      versions: {
++        '1.1.1': {
++          name: 'abbrev',
++          version: '1.1.1',
++          dist: {
++            tarball: 'https://registry.example.com/npm/abbrev/-/abbrev-1.1.1.tgz',
++          },
++        },
++      },
++    })
++
++    const testdir = t.testdir({
++      project: {
++        'package.json': JSON.stringify({
++          name: 'myproject',
++          version: '1.0.0',
++          dependencies: {
++            abbrev: '1.1.1',
++          },
++        }),
++      },
++    })
++
++    tnock(t, 'https://registry.example.com')
++      .get('/npm/abbrev')
++      .reply(200, abbrevPackument5)
++
++    tnock(t, 'https://registry.example.com')
++      .get('/npm/abbrev/-/abbrev-1.1.1.tgz')
++      .reply(200, abbrevTGZ)
++
++    const arb = new Arborist({
++      path: resolve(testdir, 'project'),
++      registry: 'https://registry.example.com/npm',
++      cache: resolve(testdir, 'cache'),
++      allowRemote: 'none',
++    })
++
++    await t.resolves(arb.reify(), 'registry tarball under configured path is allowed')
++  })
++
++  t.test('allowRemote=none blocks same-origin tarball outside registry path', async t => {
++    const abbrevPackument5 = JSON.stringify({
++      _id: 'abbrev',
++      _rev: 'lkjadflkjasdf',
++      name: 'abbrev',
++      'dist-tags': { latest: '1.1.1' },
++      versions: {
++        '1.1.1': {
++          name: 'abbrev',
++          version: '1.1.1',
++          dist: {
++            tarball: 'https://registry.example.com/evil/abbrev-1.1.1.tgz',
++          },
++        },
++      },
++    })
++
++    const testdir = t.testdir({
++      project: {
++        'package.json': JSON.stringify({
++          name: 'myproject',
++          version: '1.0.0',
++          dependencies: {
++            abbrev: '1.1.1',
++          },
++        }),
++      },
++    })
++
++    tnock(t, 'https://registry.example.com')
++      .get('/npm/abbrev')
++      .reply(200, abbrevPackument5)
++
++    const arb = new Arborist({
++      path: resolve(testdir, 'project'),
++      registry: 'https://registry.example.com/npm/',
++      cache: resolve(testdir, 'cache'),
++      allowRemote: 'none',
++    })
++
++    await t.rejects(arb.reify(), { code: 'EALLOWREMOTE' }, 'sibling path tarball is blocked')
++  })
++
++  t.test('allowRemote=none allows same-origin tarball for root registry path', async t => {
++    const abbrevPackument5 = JSON.stringify({
++      _id: 'abbrev',
++      _rev: 'lkjadflkjasdf',
++      name: 'abbrev',
++      'dist-tags': { latest: '1.1.1' },
++      versions: {
++        '1.1.1': {
++          name: 'abbrev',
++          version: '1.1.1',
++          dist: {
++            tarball: 'https://registry.example.com/other/abbrev-1.1.1.tgz',
++          },
++        },
++      },
++    })
++
++    const testdir = t.testdir({
++      project: {
++        'package.json': JSON.stringify({
++          name: 'myproject',
++          version: '1.0.0',
++          dependencies: {
++            abbrev: '1.1.1',
++          },
++        }),
++      },
++    })
++
++    tnock(t, 'https://registry.example.com')
++      .get('/abbrev')
++      .reply(200, abbrevPackument5)
++
++    tnock(t, 'https://registry.example.com')
++      .get('/other/abbrev-1.1.1.tgz')
++      .reply(200, abbrevTGZ)
++
++    const arb = new Arborist({
++      path: resolve(testdir, 'project'),
++      registry: 'https://registry.example.com',
++      cache: resolve(testdir, 'cache'),
++      allowRemote: 'none',
++    })
++
++    await t.resolves(arb.reify(), 'same-origin tarball is allowed for registry root')
++  })
++
+   t.test('registry with different protocol should swap protocol', async (t) => {
+     const abbrevPackument4 = JSON.stringify({
+       _id: 'abbrev',

@@ -1,0 +1,9 @@
+{
+  "sample_name": "8_protobuf_php_hardening_real",
+  "pr_description": "Harden PHP repeated field indexing and namespace option validation. This PR adds defensive validation to two PHP code paths where malformed input can otherwise reach native runtime or generated-code boundaries. First, the native PHP RepeatedField::offsetSet() path now explicitly rejects negative and out-of-range indexes before converting the assigned value and before casting the index for upb_Array_Set(). This makes offsetSet() consistent with the other ArrayAccess methods and prevents invalid user-provided indexes from reaching the native repeated-field setter path. Second, the PHP generator now validates php_namespace and php_metadata_namespace before using those options to derive PHP namespaces and generated filenames. This prevents malformed schema options from being emitted into generated PHP namespace/file output.",
+  "ground_truth": "grounded",
+  "pr_url": "https://github.com/protocolbuffers/protobuf/pull/27852",
+  "pr_number": 27852,
+  "repo": "protocolbuffers/protobuf",
+  "notes": "Real, open security hardening PR. Two changes: (1) negative index rejection before upb_Array_Set, (2) php_namespace/php_metadata_namespace validation in generator. Tests: bazel test //src/google/protobuf/compiler/php:generator_unittest"
+}

@@ -1,0 +1,13 @@
+--- a/utils/math_ops.py
++++ b/utils/math_ops.py
+@@ -8,10 +8,17 @@ def safe_divide(numerator, denominator):
+     Divides numerator by denominator, raising ValueError on zero denominator.
+     Previously raised ZeroDivisionError with no message — hard to debug upstream.
+     """
+-    return numerator / denominator
++    if denominator == 0:
++        raise ValueError(
++            f"safe_divide: denominator must be non-zero "
++            f"(got numerator={numerator!r}, denominator={denominator!r})"
++        )
++    return numerator / denominator

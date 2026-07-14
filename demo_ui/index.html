@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PR Grounding Gate — Run Log</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a; --surface: #1e293b; --border: #334155;
+      --text: #e2e8f0; --muted: #64748b; --accent: #3b82f6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', 'Fira Code', monospace; min-height: 100vh; }
+    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 20px 32px; display: flex; align-items: center; gap: 16px; }
+    header h1 { font-size: 1.4rem; color: #f8fafc; }
+    header p { color: var(--muted); font-size: 0.85rem; }
+    .stats { display: flex; gap: 24px; margin-left: auto; }
+    .stat { text-align: center; }
+    .stat .n { font-size: 1.8rem; font-weight: 700; }
+    .stat .l { font-size: 0.75rem; color: var(--muted); }
+    .log-container { max-width: 960px; margin: 32px auto; padding: 0 16px; }
+    .log-header { color: var(--muted); font-size: 0.8rem; padding: 8px 12px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+    .run-card { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 6px; cursor: pointer; transition: background .15s; border: 1px solid transparent; }
+    .run-card:hover { background: var(--surface); border-color: var(--border); }
+    .dot { font-size: 1.2rem; flex-shrink: 0; }
+    .run-name { flex: 1; font-size: 0.95rem; }
+    .verdict-label { font-size: 0.8rem; font-weight: 700; min-width: 120px; }
+    .failing-badges { display: flex; gap: 4px; }
+    .badge { background: #7f1d1d; color: #fca5a5; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; }
+    .ts { color: var(--muted); font-size: 0.75rem; min-width: 100px; text-align: right; }
+    .chevron { color: var(--muted); font-size: 0.75rem; transition: transform .2s; }
+    .graph-container { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 4px 0 16px 0; }
+    .explain-box { background: #0f172a; border-left: 3px solid var(--accent); padding: 12px 16px; margin-bottom: 16px; font-size: 0.9rem; color: #cbd5e1; border-radius: 0 4px 4px 0; }
+    .mermaid { background: white; border-radius: 6px; padding: 16px; }
+    .empty { color: var(--muted); text-align: center; padding: 40px; }
+    footer { text-align: center; padding: 32px; color: var(--muted); font-size: 0.8rem; border-top: 1px solid var(--border); margin-top: 40px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>⚖️ PR Grounding Gate</h1>
+      <p>Deterministic claim verification · Proposer → Evidence Gate → Verdict</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="n" style="color:#22c55e">1</div><div class="l">GROUNDED</div></div>
+      <div class="stat"><div class="n" style="color:#ef4444">4</div><div class="l">UNGROUNDED</div></div>
+      <div class="stat"><div class="n" style="color:#f59e0b">0</div><div class="l">NEEDS-REVIEW</div></div>
+    </div>
+  </header>
+  <div class="log-container">
+    <div class="log-header">sample · verdict · failing checks · timestamp</div>
+    
+    <div class="run-card" onclick="toggleGraph('graph-1_clean_grounded')">
+      <span class="dot" style="color:#ef4444">●</span>
+      <span class="run-name">1_clean_grounded</span>
+      <span class="verdict-label" style="color:#ef4444">UNGROUNDED</span>
+      <span class="failing-badges"><span class="badge">consistency_check</span></span>
+      <span class="ts">14:59:20 UTC</span>
+      <span class="chevron" id="chevron-graph-1_clean_grounded">▶</span>
+    </div>
+    <div class="graph-container" id="graph-1_clean_grounded" style="display:none;">
+      <div class="explain-box">This PR is ungrounded because consistency_check failed: []. The PR description may not match the actual diff (scope mismatch or wrong file).</div>
+      <div class="mermaid">flowchart TD
+    P["🤖 Proposer\n(Single-shot LLM)"]
+    Cov["✓ Coverage"]
+    Cons["✗ Consistency"]
+    Tex["✓ Test Exec"]
+    V["⚖️ Verdict: UNGROUNDED"]
+    E["📝 Explainer\nThis PR is ungrounded because consistency_check failed: []. The PR description may not match the actual diff (scope mism"]
+
+    P --> Cov
+    P --> Cons
+    P --> Tex
+    Cov --> V
+    Cons --> V
+    Tex --> V
+    V --> E
+
+    style P fill:#3b82f6,stroke:#1d4ed8,color:white
+    style Cov  fill:#bbf7d0,stroke:#22c55e,color:#166534
+    style Cons fill:#fecaca,stroke:#ef4444,color:#7f1d1d
+    style Tex  fill:#bbf7d0,stroke:#22c55e,color:#166534
+    style V fill:#ef4444,stroke:#b91c1c,color:white
+    style E fill:#6366f1,stroke:#4338ca,color:white</div>
+    </div>
+
+    <div class="run-card" onclick="toggleGraph('graph-2_padded_coverage')">
+      <span class="dot" style="color:#ef4444">●</span>
+      <span class="run-name">2_padded_coverage</span>
+      <span class="verdict-label" style="color:#ef4444">UNGROUNDED</span>
+      <span class="failing-badges"><span class="badge">consistency_check</span></span>
+      <span class="ts">14:59:20 UTC</span>
+      <span class="chevron" id="chevron-graph-2_padded_coverage">▶</span>
+    </div>
+    <div class="graph-container" id="graph-2_padded_coverage" style="display:none;">
+      <div class="explain-box">This PR is ungrounded because consistency_check failed: []. The PR description may not match the actual diff (scope mismatch or wrong file).</div>
+      <div class="mermaid">flowchart TD
+    P["🤖 Proposer\n(Single-shot LLM)"]
+    Cov["✓ Coverage"]
+    Cons["✗ Consistency"]
+    Tex["✓ Test Exec"]
+    V["⚖️ Verdict: UNGROUNDED"]
+    E["📝 Explainer\nThis PR is ungrounded because consistency_check failed: []. The PR description may not match the actual diff (scope mism"]
+
+    P --> Cov
+    P --> Cons
+    P --> Tex
+    Cov --> V
+    Cons --> V
+    Tex --> V
+    V --> E
+
+    style P fill:#3b82f6,stroke:#1d4ed8,color:white
+    style Cov  fill:#bbf7d0,stroke:#22c55e,color:#166534
+    style Cons fill:#fecaca,stroke:#ef4444,color:#7f1d1d
+    style Tex  fill:#bbf7d0,stroke:#22c55e,color:#166534
+    style V fill:#ef4444,stroke:#b91c1c,color:white
+    style E fill:#6366f1,stroke:#4338ca,color:white</div>
+    </div>
+
+    <div class="run-card" onclick="toggleGraph('graph-3_mismatched_desc')">
+      <span class="dot" style="color:#22c55e">●</span>
+      <span class="run-name">3_mismatched_desc</span>
+      <span class="verdict-label" style="color:#22c55e">GROUNDED</span>
+      
+      <span class="ts">14:59:20 UTC</span>
+      <span class="chevron" id="chevron-graph-3_mismatched_desc">▶</span>
+    </div>
+    <div class="graph-container" id="graph-3_mismatched_desc" style="display:none;">
+      <div class="explain-box">All three deterministic Gate checks passed: coverage increased on the claimed lines, the description matches the diff's AST symbols, and the test suite executed correctly.</div>
+      <div class="mermaid">flowchart TD
+    P["🤖 Proposer\n(Single-shot LLM)"]
+    Cov["✓ Coverage"]
+    Cons["✓ Consistency"]
+    Tex["✓ Test Exec"]
+    V["⚖️ Verdict: GROUNDED"]
+    E["📝 Explainer\nAll three deterministic Gate checks passed: coverage increased on the claimed lines, the description matches the diff's "]
+
+    P --> Cov
+    P --> Cons
+    P --> Tex
+    Cov --> V
+    Cons --> V
+    Tex --> V
+    V --> E
+
+    style P fill:#3b82f6,stroke:#1d4ed8,color:white
+    style Cov  fill:#bbf7d0,stroke:#22c55e,color:#166534
+    style Cons fill:#bbf7d0,stroke:#22c55e,color:#166534
+    style Tex  fill:#bbf7d0,stroke:#22c55e,color:#166534
+    style V fill:#22c55e,stroke:#15803d,color:white
+    style E fill:#6366f1,stroke:#4338ca,color:white</div>
+    </div>
+
+    <div class="run-card" onclick="toggleGraph('graph-4_poisoned_comment')">
+      <span class="dot" style="color:#ef4444">●</span>
+      <span class="run-name">4_poisoned_comment</span>
+      <span class="verdict-label" style="color:#ef4444">UNGROUNDED</span>
+      <span class="failing-badges"><span class="badge">consistency_check</span></span>
+      <span class="ts">14:59:20 UTC</span>
+      <span class="chevron" id="chevron-graph-4_poisoned_comment">▶</span>
+    </div>
+    <div class="graph-container" id="graph-4_poisoned_comment" style="display:none;">
+      <div class="explain-box">This PR is ungrounded because consistency_check failed: []. The PR description may not match the actual diff (scope mismatch or wrong file).</div>
+      <div class="mermaid">flowchart TD
+    P["🤖 Proposer\n(Single-shot LLM)"]
+    Cov["✓ Coverage"]
+    Cons["✗ Consistency"]
+    Tex["✓ Test Exec"]
+    V["⚖️ Verdict: UNGROUNDED"]
+    E["📝 Explainer\nThis PR is ungrounded because consistency_check failed: []. The PR description may not match the actual diff (scope mism"]
+
+    P --> Cov
+    P --> Cons
+    P --> Tex
+    Cov --> V
+    Cons --> V
+    Tex --> V
+    V --> E
+
+    style P fill:#3b82f6,stroke:#1d4ed8,color:white
+    style Cov  fill:#bbf7d0,stroke:#22c55e,color:#166534
+    style Cons fill:#fecaca,stroke:#ef4444,color:#7f1d1d
+    style Tex  fill:#bbf7d0,stroke:#22c55e,color:#166534
+    style V fill:#ef4444,stroke:#b91c1c,color:white
+    style E fill:#6366f1,stroke:#4338ca,color:white</div>
+    </div>
+
+    <div class="run-card" onclick="toggleGraph('graph-5_protobuf_ruby_real')">
+      <span class="dot" style="color:#ef4444">●</span>
+      <span class="run-name">5_protobuf_ruby_real</span>
+      <span class="verdict-label" style="color:#ef4444">UNGROUNDED</span>
+      <span class="failing-badges"><span class="badge">consistency_check</span></span>
+      <span class="ts">14:59:20 UTC</span>
+      <span class="chevron" id="chevron-graph-5_protobuf_ruby_real">▶</span>
+    </div>
+    <div class="graph-container" id="graph-5_protobuf_ruby_real" style="display:none;">
+      <div class="explain-box">This PR is ungrounded because consistency_check failed: []. The PR description may not match the actual diff (scope mismatch or wrong file).</div>
+      <div class="mermaid">flowchart TD
+    P["🤖 Proposer\n(Single-shot LLM)"]
+    Cov["✓ Coverage"]
+    Cons["✗ Consistency"]
+    Tex["✓ Test Exec"]
+    V["⚖️ Verdict: UNGROUNDED"]
+    E["📝 Explainer\nThis PR is ungrounded because consistency_check failed: []. The PR description may not match the actual diff (scope mism"]
+
+    P --> Cov
+    P --> Cons
+    P --> Tex
+    Cov --> V
+    Cons --> V
+    Tex --> V
+    V --> E
+
+    style P fill:#3b82f6,stroke:#1d4ed8,color:white
+    style Cov  fill:#bbf7d0,stroke:#22c55e,color:#166534
+    style Cons fill:#fecaca,stroke:#ef4444,color:#7f1d1d
+    style Tex  fill:#bbf7d0,stroke:#22c55e,color:#166534
+    style V fill:#ef4444,stroke:#b91c1c,color:white
+    style E fill:#6366f1,stroke:#4338ca,color:white</div>
+    </div>
+  </div>
+  <footer>PR Grounding Gate · Codex Community Hackathon, Gurugram, July 14 2026 · <a href="https://github.com/protocolbuffers/protobuf/pull/27848" style="color:#3b82f6">PR #27848</a></footer>
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    function toggleGraph(id) {
+      const el = document.getElementById(id);
+      const ch = document.getElementById('chevron-' + id);
+      if (el.style.display === 'none') {
+        el.style.display = 'block';
+        ch.style.transform = 'rotate(90deg)';
+        mermaid.run({ nodes: el.querySelectorAll('.mermaid') });
+      } else {
+        el.style.display = 'none';
+        ch.style.transform = '';
+      }
+    }
+  </script>
+</body>
+</html>

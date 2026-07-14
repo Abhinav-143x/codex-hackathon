@@ -1,0 +1,57 @@
+name: Slopper — Contributor Reputation Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  slopper:
+    name: Slopper (contributor reputation)
+    runs-on: ubuntu-latest
+    # This runs as a SEPARATE step from the PR Grounding Gate.
+    # Slopper's output is NEVER merged into the Gate's verdict.
+    # Two distinct, separately labeled signals:
+    #   - Slopper: behavioral/reputation signal about the CONTRIBUTOR
+    #   - prgg Gate: structural/deterministic signal about the DIFF CONTENT
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Run Slopper
+        uses: dimdenGD/slopper@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Slopper posts its own comment labeled "Slopper Contributor Score"
+          # The Gate's verdict comment (posted by github_commenter.py) is separate.
+
+  prgg-gate:
+    name: PR Grounding Gate (claim verification)
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -e .
+
+      - name: Run Gate on this PR
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          prgg check "$PR_URL"
+
+      - name: Post verdict as PR comment
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO_FULL_NAME: ${{ github.repository }}
+        run: |
+          python github_commenter.py

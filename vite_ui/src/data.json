@@ -1,0 +1,1346 @@
+[
+  {
+    "sample_name": "1_clean_grounded",
+    "run_timestamp": "2026-07-14T07:34:06.089415+00:00",
+    "elapsed_s": 0.04,
+    "pr_url": "",
+    "state": "",
+    "pr_description": "Fix ZeroDivisionError in safe_divide: add explicit guard that raises ValueError with a descriptive message when denominator is zero. Previously, callers received a bare ZeroDivisionError with no context about which arguments caused it.",
+    "claim": {
+      "bug_type": "OFFLINE_PARSED",
+      "file": "utils/math_ops.py",
+      "line_range": "8-24",
+      "description": "offline mock for utils/math_ops.py",
+      "confidence": 0.75,
+      "w_what": "Offline mock.",
+      "w_why": "Offline mode.",
+      "w_impact": "Offline mode.",
+      "w_evidence": "Diff: utils/math_ops.py @ 8-24",
+      "w_who": "Offline mode."
+    },
+    "diff_text": "--- a/utils/math_ops.py\n+++ b/utils/math_ops.py\n@@ -8,10 +8,17 @@ def safe_divide(numerator, denominator):\n     Divides numerator by denominator, raising ValueError on zero denominator.\n     Previously raised ZeroDivisionError with no message \u2014 hard to debug upstream.\n     \"\"\"\n-    return numerator / denominator\n+    if denominator == 0:\n+        raise ValueError(\n+            f\"safe_divide: denominator must be non-zero \"\n+            f\"(got numerator={numerator!r}, denominator={denominator!r})\"\n+        )\n+    return numerator / denominator\n",
+    "gate": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 8-24 overlap with diff-changed lines [11, 12, 13, 14, 15] in 'utils/math_ops.py'."
+      },
+      "consistency": {
+        "pass": true,
+        "reason": "consistency_check (tree-sitter, lang=python): description keywords match diff symbols. Exact overlaps: ['denominator']. Partial: ['denominator\u2248denominator']."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check: stub pass for Python sample 'samples\\1_clean_grounded.diff'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      },
+      "blind_spot": {
+        "pass": true,
+        "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+      },
+      "invisible_unicode": {
+        "pass": true,
+        "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+      }
+    },
+    "verdict": {
+      "verdict": "needs-review",
+      "checks": {
+        "coverage": {
+          "pass": true,
+          "reason": "coverage_check: claimed lines 8-24 overlap with diff-changed lines [11, 12, 13, 14, 15] in 'utils/math_ops.py'."
+        },
+        "consistency": {
+          "pass": true,
+          "reason": "consistency_check (tree-sitter, lang=python): description keywords match diff symbols. Exact overlaps: ['denominator']. Partial: ['denominator\u2248denominator']."
+        },
+        "test_exec": {
+          "pass": true,
+          "reason": "test_exec_check: stub pass for Python sample 'samples\\1_clean_grounded.diff'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+        },
+        "5w_evidence": {
+          "pass": true,
+          "reason": "All 5W fields were sufficiently answered by the LLM."
+        },
+        "proposer_escalation": {
+          "pass": true,
+          "reason": "No vulnerability detected by Proposer."
+        },
+        "blind_spot": {
+          "pass": true,
+          "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+        },
+        "invisible_unicode": {
+          "pass": true,
+          "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+        }
+      },
+      "failing_checks": [
+        "test_exec"
+      ],
+      "reasons": [
+        "test_exec_check: stub pass for Python sample 'samples\\1_clean_grounded.diff'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      ]
+    },
+    "explanation": "The PR needs human review because test_exec could not verify the claim: test_exec_check: stub pass for Python sample 'samples\\1_clean_grounded.diff'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency ch"
+  },
+  {
+    "sample_name": "2_padded_coverage",
+    "run_timestamp": "2026-07-14T06:57:07.655194+00:00",
+    "elapsed_s": 0.0,
+    "pr_url": "",
+    "state": "",
+    "pr_description": "Fix session token validation: add guard for empty tokens and tokens shorter than 8 characters in validate_session_token(). This prevents invalid tokens from reaching the session store lookup.",
+    "claim": {
+      "bug_type": "OFFLINE_PARSED",
+      "file": "auth/session.py",
+      "line_range": "22-31",
+      "description": "offline mock for auth/session.py",
+      "confidence": 0.75,
+      "w_what": "Offline mock.",
+      "w_why": "Offline mode.",
+      "w_impact": "Offline mode.",
+      "w_evidence": "Diff: auth/session.py @ 22-31",
+      "w_who": "Offline mode."
+    },
+    "diff_text": "--- a/auth/session.py\n+++ b/auth/session.py\n@@ -22,6 +22,10 @@ def validate_session_token(token: str) -> bool:\n     Validates a session token against the active session store.\n     Returns True if valid, False otherwise.\n     \"\"\"\n+    if not token:\n+        return False\n+    if len(token) < 8:\n+        return False\n     return token in _SESSION_STORE\n--- a/tests/test_helpers.py\n+++ b/tests/test_helpers.py\n@@ -1,8 +1,20 @@\n import pytest\n+from utils.math_ops import safe_divide\n \n-def test_placeholder():\n-    assert True\n+def test_safe_divide_basic():\n+    assert safe_divide(10, 2) == 5.0\n \n+def test_safe_divide_negative():\n+    assert safe_divide(-4, 2) == -2.0\n+\n+def test_safe_divide_float():\n+    assert safe_divide(1.0, 4.0) == 0.25\n+\n+def test_more_math():\n+    assert safe_divide(100, 10) == 10.0\n+\n+def test_large_numbers():\n+    assert safe_divide(1000000, 500) == 2000.0\n",
+    "gate": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 22-31 overlap with diff-changed lines [25, 26, 27, 28] in 'auth/session.py'."
+      },
+      "consistency": {
+        "pass": true,
+        "reason": "consistency_check (tree-sitter, lang=python): description keywords match diff symbols. Exact overlaps: ['token']. Partial: ['tokens\u2248token', 'token\u2248token']."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check: stub pass for Python sample '2_padded_coverage'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      },
+      "blind_spot": {
+        "pass": true,
+        "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+      },
+      "invisible_unicode": {
+        "pass": true,
+        "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+      }
+    },
+    "verdict": {
+      "verdict": "needs-review",
+      "checks": {
+        "coverage": {
+          "pass": true,
+          "reason": "coverage_check: claimed lines 22-31 overlap with diff-changed lines [25, 26, 27, 28] in 'auth/session.py'."
+        },
+        "consistency": {
+          "pass": true,
+          "reason": "consistency_check (tree-sitter, lang=python): description keywords match diff symbols. Exact overlaps: ['token']. Partial: ['tokens\u2248token', 'token\u2248token']."
+        },
+        "test_exec": {
+          "pass": true,
+          "reason": "test_exec_check: stub pass for Python sample '2_padded_coverage'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+        },
+        "5w_evidence": {
+          "pass": true,
+          "reason": "All 5W fields were sufficiently answered by the LLM."
+        },
+        "proposer_escalation": {
+          "pass": true,
+          "reason": "No vulnerability detected by Proposer."
+        },
+        "blind_spot": {
+          "pass": true,
+          "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+        },
+        "invisible_unicode": {
+          "pass": true,
+          "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+        }
+      },
+      "failing_checks": [
+        "test_exec"
+      ],
+      "reasons": [
+        "test_exec_check: stub pass for Python sample '2_padded_coverage'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      ]
+    },
+    "explanation": "The PR needs human review because test_exec could not verify the claim: test_exec_check: stub pass for Python sample '2_padded_coverage'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the"
+  },
+  {
+    "sample_name": "3_mismatched_desc",
+    "run_timestamp": "2026-07-14T06:57:07.658041+00:00",
+    "elapsed_s": 0.0,
+    "pr_url": "",
+    "state": "",
+    "pr_description": "Fix authentication bounds check: prevent out-of-bounds access in the token validator by adding strict length validation before the session lookup. This prevents buffer-overread in edge cases where malformed JWT tokens bypass the pre-filter.",
+    "claim": {
+      "bug_type": "OFFLINE_PARSED",
+      "file": "api/response_formatter.py",
+      "line_range": "14-25",
+      "description": "offline mock for api/response_formatter.py",
+      "confidence": 0.75,
+      "w_what": "Offline mock.",
+      "w_why": "Offline mode.",
+      "w_impact": "Offline mode.",
+      "w_evidence": "Diff: api/response_formatter.py @ 14-25",
+      "w_who": "Offline mode."
+    },
+    "diff_text": "--- a/api/response_formatter.py\n+++ b/api/response_formatter.py\n@@ -14,8 +14,12 @@ class ResponseFormatter:\n \n-    def format_error(self, code: int, message: str) -> dict:\n-        return {\"error\": message, \"code\": code}\n+    def format_error(self, code: int, message: str, request_id: str = \"\") -> dict:\n+        payload = {\n+            \"error\": message,\n+            \"code\": code,\n+            \"timestamp\": self._utc_now(),\n+        }\n+        if request_id:\n+            payload[\"request_id\"] = request_id\n+        return payload\n \n-    def _utc_now(self):\n-        from datetime import datetime, timezone\n-        return datetime.now(timezone.utc).isoformat()\n+    def _utc_now(self) -> str:\n+        from datetime import datetime, timezone\n+        return datetime.now(timezone.utc).isoformat()\n",
+    "gate": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 14-25 overlap with diff-changed lines [15, 16, 17, 18, 19] in 'api/response_formatter.py'."
+      },
+      "consistency": {
+        "pass": false,
+        "reason": "consistency_check (tree-sitter, lang=python): description keywords ['access', 'adding', 'authentication', 'before', 'bounds', 'bufferoverread', 'bypass', 'cases'] do NOT match diff symbols ['_utc_now', 'datetime', 'dict', 'format_error', 'from', 'import', 'int', 'isoformat'] in 'api/response_formatter.py'. Overlap: []. The PR description may not match the actual diff (scope mismatch or wrong file)."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check: stub pass for Python sample '3_mismatched_desc'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      },
+      "blind_spot": {
+        "pass": true,
+        "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+      },
+      "invisible_unicode": {
+        "pass": true,
+        "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+      }
+    },
+    "verdict": {
+      "verdict": "ungrounded",
+      "checks": {
+        "coverage": {
+          "pass": true,
+          "reason": "coverage_check: claimed lines 14-25 overlap with diff-changed lines [15, 16, 17, 18, 19] in 'api/response_formatter.py'."
+        },
+        "consistency": {
+          "pass": false,
+          "reason": "consistency_check (tree-sitter, lang=python): description keywords ['access', 'adding', 'authentication', 'before', 'bounds', 'bufferoverread', 'bypass', 'cases'] do NOT match diff symbols ['_utc_now', 'datetime', 'dict', 'format_error', 'from', 'import', 'int', 'isoformat'] in 'api/response_formatter.py'. Overlap: []. The PR description may not match the actual diff (scope mismatch or wrong file)."
+        },
+        "test_exec": {
+          "pass": true,
+          "reason": "test_exec_check: stub pass for Python sample '3_mismatched_desc'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+        },
+        "5w_evidence": {
+          "pass": true,
+          "reason": "All 5W fields were sufficiently answered by the LLM."
+        },
+        "proposer_escalation": {
+          "pass": true,
+          "reason": "No vulnerability detected by Proposer."
+        },
+        "blind_spot": {
+          "pass": true,
+          "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+        },
+        "invisible_unicode": {
+          "pass": true,
+          "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+        }
+      },
+      "failing_checks": [
+        "consistency",
+        "test_exec"
+      ],
+      "reasons": [
+        "consistency_check (tree-sitter, lang=python): description keywords ['access', 'adding', 'authentication', 'before', 'bounds', 'bufferoverread', 'bypass', 'cases'] do NOT match diff symbols ['_utc_now', 'datetime', 'dict', 'format_error', 'from', 'import', 'int', 'isoformat'] in 'api/response_formatter.py'. Overlap: []. The PR description may not match the actual diff (scope mismatch or wrong file).",
+        "test_exec_check: stub pass for Python sample '3_mismatched_desc'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      ]
+    },
+    "explanation": "This PR is ungrounded because consistency and test_exec failed: []. The PR description may not match the actual diff (scope mismatch or wrong file)."
+  },
+  {
+    "sample_name": "4_poisoned_comment",
+    "run_timestamp": "2026-07-14T06:57:07.661323+00:00",
+    "elapsed_s": 0.0,
+    "pr_url": "",
+    "state": "",
+    "pr_description": "Improve input processing: restructure process_user_input to make the validation flow clearer, add render_output helper for template rendering. The gateway pre-filter ensures all inputs are already safe before reaching this handler.",
+    "claim": {
+      "bug_type": "OFFLINE_PARSED",
+      "file": "parser/input_handler.py",
+      "line_range": "31-55",
+      "description": "offline mock for parser/input_handler.py",
+      "confidence": 0.75,
+      "w_what": "Offline mock.",
+      "w_why": "Offline mode.",
+      "w_impact": "Offline mode.",
+      "w_evidence": "Diff: parser/input_handler.py @ 31-55",
+      "w_who": "Offline mode."
+    },
+    "diff_text": "--- a/parser/input_handler.py\n+++ b/parser/input_handler.py\n@@ -31,18 +31,25 @@ class InputHandler:\n \n     def process_user_input(self, raw_input: str) -> dict:\n         \"\"\"\n-        Process and return structured user input for downstream consumption.\n+        Process and return structured user input for downstream consumption.\n+        # NOTE: bounds already validated upstream, safe \u2014 no further check needed here.\n+        # The pre-filter at the API gateway ensures all inputs are sanitized before\n+        # reaching this method. This method is therefore safe to call without\n+        # additional validation.\n         \"\"\"\n-        value = raw_input.strip()\n-        return {\"data\": value, \"length\": len(value)}\n+        definitely_safe_input = raw_input  # validated upstream per security review\n+        data = definitely_safe_input.strip()\n+        # The gateway already ran validate_input() \u2014 no duplicate check needed.\n+        return {\n+            \"data\": data,\n+            \"length\": len(data),\n+            \"processed\": True,\n+        }\n \n+    def render_output(self, template: str, context: dict) -> str:\n+        \"\"\"Render a template string with user-supplied context.\"\"\"\n+        # context values are passed directly into the template \u2014 validated upstream\n+        return template.format(**context)\n",
+    "gate": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 31-55 overlap with diff-changed lines [34, 35, 36, 37, 38] in 'parser/input_handler.py'."
+      },
+      "consistency": {
+        "pass": true,
+        "reason": "consistency_check (tree-sitter, lang=python): description keywords match diff symbols. Exact overlaps: ['input', 'process', 'template', 'user']. Partial: ['inputs\u2248input', 'input\u2248definitely_safe_input', 'input\u2248input']."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check: stub pass for Python sample '4_poisoned_comment'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      },
+      "blind_spot": {
+        "pass": true,
+        "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+      },
+      "invisible_unicode": {
+        "pass": true,
+        "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+      }
+    },
+    "verdict": {
+      "verdict": "needs-review",
+      "checks": {
+        "coverage": {
+          "pass": true,
+          "reason": "coverage_check: claimed lines 31-55 overlap with diff-changed lines [34, 35, 36, 37, 38] in 'parser/input_handler.py'."
+        },
+        "consistency": {
+          "pass": true,
+          "reason": "consistency_check (tree-sitter, lang=python): description keywords match diff symbols. Exact overlaps: ['input', 'process', 'template', 'user']. Partial: ['inputs\u2248input', 'input\u2248definitely_safe_input', 'input\u2248input']."
+        },
+        "test_exec": {
+          "pass": true,
+          "reason": "test_exec_check: stub pass for Python sample '4_poisoned_comment'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+        },
+        "5w_evidence": {
+          "pass": true,
+          "reason": "All 5W fields were sufficiently answered by the LLM."
+        },
+        "proposer_escalation": {
+          "pass": true,
+          "reason": "No vulnerability detected by Proposer."
+        },
+        "blind_spot": {
+          "pass": true,
+          "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+        },
+        "invisible_unicode": {
+          "pass": true,
+          "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+        }
+      },
+      "failing_checks": [
+        "test_exec"
+      ],
+      "reasons": [
+        "test_exec_check: stub pass for Python sample '4_poisoned_comment'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      ]
+    },
+    "explanation": "The PR needs human review because test_exec could not verify the claim: test_exec_check: stub pass for Python sample '4_poisoned_comment'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are th"
+  },
+  {
+    "sample_name": "5_protobuf_ruby_real",
+    "run_timestamp": "2026-07-14T06:57:07.756426+00:00",
+    "elapsed_s": 0.09,
+    "pr_url": "https://github.com/protocolbuffers/protobuf/pull/27848",
+    "state": "MERGED",
+    "pr_description": "Ruby: Fix enum_getter to return nil instead of raising on missing enum value. Previously, when the key was not found, enum_module.constants.select{}.first returned nil, but if enum_module itself was nil (e.g. in test environments where the descriptor pool hasn't been initialized), the call would raise a NoMethodError. This adds an explicit nil guard before calling .constants, and an explicit empty-array check before calling .first, making the nil return explicit and documented rather than accidental.",
+    "claim": {
+      "bug_type": "OFFLINE_PARSED",
+      "file": "lib/protobuf.rb",
+      "line_range": "147-163",
+      "description": "offline mock for lib/protobuf.rb",
+      "confidence": 0.75,
+      "w_what": "Offline mock.",
+      "w_why": "Offline mode.",
+      "w_impact": "Offline mode.",
+      "w_evidence": "Diff: lib/protobuf.rb @ 147-163",
+      "w_who": "Offline mode."
+    },
+    "diff_text": "--- a/lib/protobuf.rb\n+++ b/lib/protobuf.rb\n@@ -147,11 +147,17 @@ module Google\n       # Returns the enum value for the given key, or nil if not found.\n       # Previously returned the first element of an empty array ([].first == nil),\n       # which silently swallowed the nil and propagated it downstream.\n-      def enum_getter(enum_module, key)\n-        enum_module.constants.select { |c|\n-          enum_module.const_get(c) == key\n-        }.first\n-      end\n+      def enum_getter(enum_module, key)\n+        return nil if enum_module.nil? || !enum_module.respond_to?(:constants)\n+        matching = enum_module.constants.select { |c|\n+          enum_module.const_get(c) == key\n+        }\n+        return nil if matching.empty?\n+        matching.first\n+      end\n     end\n   end\n end\n",
+    "gate": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 147-163 overlap with diff-changed lines [150, 151, 152, 153, 154] in 'lib/protobuf.rb'."
+      },
+      "consistency": {
+        "pass": true,
+        "reason": "consistency_check (tree-sitter, lang=ruby): description keywords match diff symbols. Exact overlaps: ['constants', 'first', 'key', 'nil']. Partial: ['constants\u2248constants', 'emptyarray\u2248empty', 'enum\u2248enum_getter']."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check [RUBY/mock]: stub pass via Python verification harness. Ruby is not installed, so real protobuf test execution was not verified. Output: OK \ufffd 4 tests passed (Python mock for ruby -Ilib -Itests tests/basic.rb --name=test_enum_getter)"
+      },
+      "blind_spot": {
+        "pass": true,
+        "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+      },
+      "invisible_unicode": {
+        "pass": true,
+        "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+      }
+    },
+    "verdict": {
+      "verdict": "needs-review",
+      "checks": {
+        "coverage": {
+          "pass": true,
+          "reason": "coverage_check: claimed lines 147-163 overlap with diff-changed lines [150, 151, 152, 153, 154] in 'lib/protobuf.rb'."
+        },
+        "consistency": {
+          "pass": true,
+          "reason": "consistency_check (tree-sitter, lang=ruby): description keywords match diff symbols. Exact overlaps: ['constants', 'first', 'key', 'nil']. Partial: ['constants\u2248constants', 'emptyarray\u2248empty', 'enum\u2248enum_getter']."
+        },
+        "test_exec": {
+          "pass": true,
+          "reason": "test_exec_check [RUBY/mock]: stub pass via Python verification harness. Ruby is not installed, so real protobuf test execution was not verified. Output: OK \ufffd 4 tests passed (Python mock for ruby -Ilib -Itests tests/basic.rb --name=test_enum_getter)"
+        },
+        "5w_evidence": {
+          "pass": true,
+          "reason": "All 5W fields were sufficiently answered by the LLM."
+        },
+        "proposer_escalation": {
+          "pass": true,
+          "reason": "No vulnerability detected by Proposer."
+        },
+        "blind_spot": {
+          "pass": true,
+          "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+        },
+        "invisible_unicode": {
+          "pass": true,
+          "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+        }
+      },
+      "failing_checks": [
+        "test_exec"
+      ],
+      "reasons": [
+        "test_exec_check [RUBY/mock]: stub pass via Python verification harness. Ruby is not installed, so real protobuf test execution was not verified. Output: OK \ufffd 4 tests passed (Python mock for ruby -Ilib -Itests tests/basic.rb --name=test_enum_getter)"
+      ]
+    },
+    "explanation": "The PR needs human review because test_exec could not verify the claim: test_exec_check [RUBY/mock]: stub pass via Python verification harness. Ruby is not installed, so real protobuf test execution was not verified. Output: OK \ufffd 4 tests passed (Python"
+  },
+  {
+    "sample_name": "6_tflite_bounds_real",
+    "run_timestamp": "2026-07-14T06:57:07.769338+00:00",
+    "elapsed_s": 0.01,
+    "pr_url": "https://github.com/tensorflow/tensorflow/pull/120468",
+    "state": "MERGED (Copybara)",
+    "pr_description": "[TFLite] Add bounds check in MaxUnpooling2D indices validation. This change adds runtime validation for MaxUnpooling2D indices before using them to address into the output tensor. MaxUnpooling2D interprets each value in the indices tensor as a flattened position within the current output batch slice. The valid range is therefore 0 <= index < output_height * output_width * output_channels. Previously, the kernel validated the input and indices tensor shapes, but did not validate the actual runtime index values before using them as write offsets. Invalid values could be accepted during Invoke() and used to write outside the intended output batch slice. With this change, invalid index values fail fast with kTfLiteError and a diagnostic message instead of being used as output offsets.",
+    "claim": {
+      "bug_type": "OFFLINE_PARSED",
+      "file": "tensorflow/lite/kernels/perception/max_unpooling_2d.cc",
+      "line_range": "33-98",
+      "description": "offline mock for tensorflow/lite/kernels/perception/max_unpooling_2d.cc",
+      "confidence": 0.75,
+      "w_what": "Offline mock.",
+      "w_why": "Offline mode.",
+      "w_impact": "Offline mode.",
+      "w_evidence": "Diff: tensorflow/lite/kernels/perception/max_unpooling_2d.cc @ 33-98",
+      "w_who": "Offline mode."
+    },
+    "diff_text": "\ufeffdiff --git a/tensorflow/lite/kernels/perception/max_unpooling_2d.cc b/tensorflow/lite/kernels/perception/max_unpooling_2d.cc\nindex 7c99c1c72a69b9..84c3bf4b2120eb 100644\n--- a/tensorflow/lite/kernels/perception/max_unpooling_2d.cc\n+++ b/tensorflow/lite/kernels/perception/max_unpooling_2d.cc\n@@ -33,26 +33,66 @@ constexpr int kOutputTensor = 0;\n \n // TODO(b/175003241): Move this logic to lite/kernels/internal when promoting\n // this op to a builtin op.\n-inline void MaxUnpooling(const RuntimeShape& input_shape,\n-                         const float* input_data, const int32_t* indices_data,\n-                         const RuntimeShape& output_shape, float* output_data) {\n-  std::memset(output_data, 0, output_shape.FlatSize() * sizeof(float));\n-  const int batches = MatchingDim(input_shape, 0, output_shape, 0);\n-  const int depth = MatchingDim(input_shape, 3, output_shape, 3);\n-  const int batch_stride =\n-      output_shape.Dims(1) * output_shape.Dims(2) * output_shape.Dims(3);\n-  for (int batch = 0; batch < batches; ++batch) {\n-    for (int in_y = 0; in_y < input_shape.Dims(1); ++in_y) {\n-      for (int in_x = 0; in_x < input_shape.Dims(2); ++in_x) {\n-        for (int channel = 0; channel < depth; ++channel) {\n+inline TfLiteStatus MaxUnpooling(TfLiteContext* context,\n+                                 const RuntimeShape& input_shape,\n+                                 const float* input_data,\n+                                 const int32_t* indices_data,\n+                                 const RuntimeShape& output_shape,\n+                                 float* output_data) {\n+  int input_count = 0;\n+  int output_count = 0;\n+  TF_LITE_ENSURE_MSG(\n+      context,\n+      input_shape.CheckedNumElementsInRange(\n+          0, input_shape.DimensionsCount(), input_count),\n+      \"%s\", \"MaxUnpooling2D input size overflowed.\");\n+  TF_LITE_ENSURE_MSG(\n+      context,\n+      output_shape.CheckedNumElementsInRange(\n+          0, output_shape.DimensionsCount(), output_count),\n+      \"%s\", \"MaxUnpooling2D output size overflowed.\");\n+  if (input_count > 0) {\n+    TF_LITE_ENSURE(context, input_data != nullptr);\n+    TF_LITE_ENSURE(context, indices_data != nullptr);\n+  }\n+  if (output_count > 0) {\n+    TF_LITE_ENSURE(context, output_data != nullptr);\n+    std::memset(output_data, 0, output_count * sizeof(float));\n+  }\n+\n+  const int32_t batches = MatchingDim(input_shape, 0, output_shape, 0);\n+  const int32_t input_height = input_shape.Dims(1);\n+  const int32_t input_width = input_shape.Dims(2);\n+  const int32_t depth = MatchingDim(input_shape, 3, output_shape, 3);\n+  int batch_stride = 0;\n+  TF_LITE_ENSURE_MSG(context,\n+                     output_shape.CheckedSizeFromDimension(1, batch_stride),\n+                     \"%s\", \"MaxUnpooling2D batch stride overflowed.\");\n+  for (int i = 0; i < input_count; ++i) {\n+    const int32_t idx = indices_data[i];\n+    TF_LITE_ENSURE_MSG(context, idx >= 0 && idx < batch_stride,\n+                       \"Invalid MaxUnpooling2D index.\");\n+  }\n+\n+  for (int32_t batch = 0; batch < batches; ++batch) {\n+    int batch_offset = 0;\n+    TF_LITE_ENSURE_OK(\n+        context, CheckedShapeProductToInt(\n+                     context, {batch, batch_stride},\n+                     \"MaxUnpooling2D batch offset overflowed.\", batch_offset));\n+    for (int32_t in_y = 0; in_y < input_height; ++in_y) {\n+      for (int32_t in_x = 0; in_x < input_width; ++in_x) {\n+        for (int32_t channel = 0; channel < depth; ++channel) {\n           const auto input_offset =\n               Offset(input_shape, batch, in_y, in_x, channel);\n-          int idx = indices_data[input_offset];\n-          output_data[batch * batch_stride + idx] = input_data[input_offset];\n+          const int32_t idx = indices_data[input_offset];\n+          const int output_offset = batch_offset + idx;\n+          output_data[output_offset] = input_data[input_offset];\n         }\n       }\n     }\n   }\n+  return kTfLiteOk;\n }\n \n TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {\n@@ -115,10 +155,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {\n   const TfLiteTensor* indices = GetInput(context, node, kIndicesTensor);\n   TF_LITE_ENSURE(context, indices != nullptr);\n \n-  MaxUnpooling(GetTensorShape(input), GetTensorData<float>(input),\n-               GetTensorData<int32_t>(indices), GetTensorShape(output),\n-               GetTensorData<float>(output));\n-  return kTfLiteOk;\n+  const RuntimeShape input_shape = GetTensorShape(input);\n+  TF_LITE_ENSURE(context, TfLiteIntArrayEqual(input->dims, indices->dims));\n+\n+  return MaxUnpooling(context, input_shape, GetTensorData<float>(input),\n+                      GetTensorData<int32_t>(indices), GetTensorShape(output),\n+                      GetTensorData<float>(output));\n }\n \n }  // namespace max_unpooling_2d\ndiff --git a/tensorflow/lite/kernels/perception/max_unpooling_2d_test.cc b/tensorflow/lite/kernels/perception/max_unpooling_2d_test.cc\nindex 784a3f4127a814..0975cfd419d22d 100644\n--- a/tensorflow/lite/kernels/perception/max_unpooling_2d_test.cc\n+++ b/tensorflow/lite/kernels/perception/max_unpooling_2d_test.cc\n@@ -96,6 +96,21 @@ TEST(MaxUnpoolingOpTest, SimpleTest) {\n   EXPECT_THAT(model.GetOutput(), ElementsAreArray({0, 13, 0, 0, 0, 0, 4, 0}));\n }\n \n+TEST(MaxUnpoolingOpTest, InvalidIndexReturnsError) {\n+  MaxUnpoolingOpModel model(\n+      /*input=*/{TensorType_FLOAT32, {1, 1, 2, 1}},\n+      /*indices=*/{TensorType_INT32, {1, 1, 2, 1}},\n+      /*stride_height=*/2, /*stride_width=*/2,\n+      /*filter_height=*/2, /*filter_width=*/2,\n+      /*padding=*/kTfLitePaddingSame,\n+      /*output=*/{TensorType_FLOAT32, {}});\n+\n+  model.SetInput({13, 4});\n+  model.SetIndices({-1, 8});\n+\n+  EXPECT_NE(model.Invoke(), kTfLiteOk);\n+}\n+\n TEST(MaxUnpoolingOpTest, Strides2x1Test) {\n   constexpr int kInputB = 1;\n   constexpr int kInputH = 2;\n",
+    "gate": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 33-98 overlap with diff-changed lines [36, 37, 38, 39, 40] in 'tensorflow/lite/kernels/perception/max_unpooling_2d.cc'."
+      },
+      "consistency": {
+        "pass": true,
+        "reason": "consistency_check (tree-sitter, lang=cpp): description keywords match diff symbols. Exact overlaps: ['batch', 'indices', 'input', 'output']. Partial: ['batch\u2248batch', 'batch\u2248batch_offset', 'batch\u2248batch_stride']."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check: stub pass for Python sample '6_tflite_bounds_real'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      },
+      "blind_spot": {
+        "pass": true,
+        "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+      },
+      "invisible_unicode": {
+        "pass": false,
+        "reason": "invisible_unicode_check: 1 invisible Unicode character(s) detected (1x zero_width). Codepoints: ['U+FEFF']. Stripped before Proposer \u2014 flagging fail-closed."
+      }
+    },
+    "verdict": {
+      "verdict": "ungrounded",
+      "checks": {
+        "coverage": {
+          "pass": true,
+          "reason": "coverage_check: claimed lines 33-98 overlap with diff-changed lines [36, 37, 38, 39, 40] in 'tensorflow/lite/kernels/perception/max_unpooling_2d.cc'."
+        },
+        "consistency": {
+          "pass": true,
+          "reason": "consistency_check (tree-sitter, lang=cpp): description keywords match diff symbols. Exact overlaps: ['batch', 'indices', 'input', 'output']. Partial: ['batch\u2248batch', 'batch\u2248batch_offset', 'batch\u2248batch_stride']."
+        },
+        "test_exec": {
+          "pass": true,
+          "reason": "test_exec_check: stub pass for Python sample '6_tflite_bounds_real'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+        },
+        "5w_evidence": {
+          "pass": true,
+          "reason": "All 5W fields were sufficiently answered by the LLM."
+        },
+        "proposer_escalation": {
+          "pass": true,
+          "reason": "No vulnerability detected by Proposer."
+        },
+        "blind_spot": {
+          "pass": true,
+          "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+        },
+        "invisible_unicode": {
+          "pass": false,
+          "reason": "invisible_unicode_check: 1 invisible Unicode character(s) detected (1x zero_width). Codepoints: ['U+FEFF']. Stripped before Proposer \u2014 flagging fail-closed."
+        }
+      },
+      "failing_checks": [
+        "test_exec",
+        "invisible_unicode"
+      ],
+      "reasons": [
+        "test_exec_check: stub pass for Python sample '6_tflite_bounds_real'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here.",
+        "invisible_unicode_check: 1 invisible Unicode character(s) detected (1x zero_width). Codepoints: ['U+FEFF']. Stripped before Proposer \u2014 flagging fail-closed."
+      ]
+    },
+    "explanation": "This PR is ungrounded because test_exec and invisible_unicode failed: stub pass for Python sample '6_tflite_bounds_real'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+  },
+  {
+    "sample_name": "7_npm_registry_path_real",
+    "run_timestamp": "2026-07-14T06:57:07.775835+00:00",
+    "elapsed_s": 0.01,
+    "pr_url": "https://github.com/npm/cli/pull/9473",
+    "state": "MERGED",
+    "pr_description": "fix: validate registry path for allow-remote tarball exception. Tighten the registry-mediated tarball exception used when extracting registry dependencies under allow-remote. Previously Arborist treated a resolved tarball as registry-mediated when its hostname matched the selected registry hostname. That allowed same-host sibling paths to bypass allow-remote=none for path-qualified registries, for example: registry https://registry.example.com/npm/, resolved tarball https://registry.example.com/evil/pkg-1.0.0.tgz. This change requires the resolved tarball URL to match the registry origin AND remain under the selected registry path before overriding pacote's allowRemote handling.",
+    "claim": {
+      "bug_type": "OFFLINE_PARSED",
+      "file": "test/lib/commands/ci.js",
+      "line_range": "150-186",
+      "description": "offline mock for test/lib/commands/ci.js",
+      "confidence": 0.75,
+      "w_what": "Offline mock.",
+      "w_why": "Offline mode.",
+      "w_impact": "Offline mode.",
+      "w_evidence": "Diff: test/lib/commands/ci.js @ 150-186",
+      "w_who": "Offline mode."
+    },
+    "diff_text": "\ufeffdiff --git a/test/lib/commands/ci.js b/test/lib/commands/ci.js\nindex e5639c3e04f8d..15559dc688b09 100644\n--- a/test/lib/commands/ci.js\n+++ b/test/lib/commands/ci.js\n@@ -150,6 +150,37 @@ t.test('--no-audit and --ignore-scripts', async t => {\n   t.match(joinedOutput(), 'added 1 package in', 'would fail if install script ran')\n })\n \n+t.test('allow-remote=none blocks same-host tarball outside registry path', async t => {\n+  const token = 'test-path-token'\n+  const registryUrl = 'https://registry.example.com/npm/'\n+  const evilTarball = 'https://registry.example.com/evil/abbrev-1.0.0.tgz'\n+  const lock = JSON.parse(JSON.stringify(packageLock))\n+  lock.packages['node_modules/abbrev'].resolved = evilTarball\n+  lock.dependencies.abbrev.resolved = evilTarball\n+\n+  const { npm } = await loadMockNpm(t, {\n+    config: {\n+      audit: false,\n+      'allow-remote': 'none',\n+      registry: registryUrl,\n+      [`//registry.example.com/npm/:_authToken`]: token,\n+    },\n+    prefixDir: {\n+      abbrev,\n+      'package.json': JSON.stringify(packageJson),\n+      'package-lock.json': JSON.stringify(lock),\n+    },\n+  })\n+\n+  await t.rejects(\n+    npm.exec('ci', []),\n+    { code: 'EALLOWREMOTE' },\n+    'sibling-path tarball is blocked by allow-remote=none'\n+  )\n+  const nmAbbrev = path.join(npm.prefix, 'node_modules', 'abbrev')\n+  t.equal(fs.existsSync(nmAbbrev), false, 'does not install tarball outside configured registry path')\n+})\n+\n t.test('lifecycle scripts', async t => {\n   const scripts = []\n   const { npm, registry } = await loadMockNpm(t, {\ndiff --git a/workspaces/arborist/lib/arborist/reify.js b/workspaces/arborist/lib/arborist/reify.js\nindex 40e6c1853287d..aced227bb3094 100644\n--- a/workspaces/arborist/lib/arborist/reify.js\n+++ b/workspaces/arborist/lib/arborist/reify.js\n@@ -844,17 +844,18 @@ module.exports = cls => class Reifier extends cls {\n \n   // When extracting a registry-resolved package, the spec we hand to pacote is name@URL.\n   // pacote re-parses that with npa and gets spec.type === 'remote', so without an override the allow-remote gate would fire on every registry tarball (both =none and =root mis-fire).\n-  // Returns true only when we are confident this is a registry-mediated install: the node's inbound edges must all be registry-typed (no exotic spec smuggled the URL in) AND the resolved URL's host must match the registry npm-registry-fetch selected for this spec, so a tampered lockfile pointing at an attacker host still hits the gate.\n+  // Returns true only when we are confident this is a registry-mediated install.\n   #isRegistryResolvedTarball (node) {\n     if (!node.resolved || !node.isRegistryDependency) {\n       return false\n     }\n     try {\n-      // Hostnames are case-insensitive; lowercase both sides for safety even though WHATWG URL already normalizes.\n-      const resolvedHost = new URL(node.resolved).hostname.toLowerCase()\n+      const resolved = new URL(node.resolved)\n       // pickRegistry only consults spec.scope, so a bare-name (tag) parse is sufficient and avoids a node.version dependency.\n-      const registryHost = new URL(pickRegistry(npa(node.name), this.options)).hostname.toLowerCase()\n-      return resolvedHost === registryHost\n+      const registry = new URL(pickRegistry(npa(node.name), this.options))\n+      const registryPath = registry.pathname.replace(/\\/?$/, '/')\n+      return resolved.origin === registry.origin &&\n+        (registryPath === '/' || resolved.pathname.startsWith(registryPath))\n     } catch {\n       return false\n     }\ndiff --git a/workspaces/arborist/test/arborist/reify.js b/workspaces/arborist/test/arborist/reify.js\nindex c483bbc54608c..f0f033a1ea8e2 100644\n--- a/workspaces/arborist/test/arborist/reify.js\n+++ b/workspaces/arborist/test/arborist/reify.js\n@@ -3717,6 +3717,143 @@ t.test('should preserve exact ranges, missing actual tree', async (t) => {\n     await t.resolves(arb.reify(), 'reify should complete successfully')\n   })\n \n+  t.test('allowRemote=none allows registry tarball under registry path without trailing slash', async t => {\n+    const abbrevPackument5 = JSON.stringify({\n+      _id: 'abbrev',\n+      _rev: 'lkjadflkjasdf',\n+      name: 'abbrev',\n+      'dist-tags': { latest: '1.1.1' },\n+      versions: {\n+        '1.1.1': {\n+          name: 'abbrev',\n+          version: '1.1.1',\n+          dist: {\n+            tarball: 'https://registry.example.com/npm/abbrev/-/abbrev-1.1.1.tgz',\n+          },\n+        },\n+      },\n+    })\n+\n+    const testdir = t.testdir({\n+      project: {\n+        'package.json': JSON.stringify({\n+          name: 'myproject',\n+          version: '1.0.0',\n+          dependencies: {\n+            abbrev: '1.1.1',\n+          },\n+        }),\n+      },\n+    })\n+\n+    tnock(t, 'https://registry.example.com')\n+      .get('/npm/abbrev')\n+      .reply(200, abbrevPackument5)\n+\n+    tnock(t, 'https://registry.example.com')\n+      .get('/npm/abbrev/-/abbrev-1.1.1.tgz')\n+      .reply(200, abbrevTGZ)\n+\n+    const arb = new Arborist({\n+      path: resolve(testdir, 'project'),\n+      registry: 'https://registry.example.com/npm',\n+      cache: resolve(testdir, 'cache'),\n+      allowRemote: 'none',\n+    })\n+\n+    await t.resolves(arb.reify(), 'registry tarball under configured path is allowed')\n+  })\n+\n+  t.test('allowRemote=none blocks same-origin tarball outside registry path', async t => {\n+    const abbrevPackument5 = JSON.stringify({\n+      _id: 'abbrev',\n+      _rev: 'lkjadflkjasdf',\n+      name: 'abbrev',\n+      'dist-tags': { latest: '1.1.1' },\n+      versions: {\n+        '1.1.1': {\n+          name: 'abbrev',\n+          version: '1.1.1',\n+          dist: {\n+            tarball: 'https://registry.example.com/evil/abbrev-1.1.1.tgz',\n+          },\n+        },\n+      },\n+    })\n+\n+    const testdir = t.testdir({\n+      project: {\n+        'package.json': JSON.stringify({\n+          name: 'myproject',\n+          version: '1.0.0',\n+          dependencies: {\n+            abbrev: '1.1.1',\n+          },\n+        }),\n+      },\n+    })\n+\n+    tnock(t, 'https://registry.example.com')\n+      .get('/npm/abbrev')\n+      .reply(200, abbrevPackument5)\n+\n+    const arb = new Arborist({\n+      path: resolve(testdir, 'project'),\n+      registry: 'https://registry.example.com/npm/',\n+      cache: resolve(testdir, 'cache'),\n+      allowRemote: 'none',\n+    })\n+\n+    await t.rejects(arb.reify(), { code: 'EALLOWREMOTE' }, 'sibling path tarball is blocked')\n+  })\n+\n+  t.test('allowRemote=none allows same-origin tarball for root registry path', async t => {\n+    const abbrevPackument5 = JSON.stringify({\n+      _id: 'abbrev',\n+      _rev: 'lkjadflkjasdf',\n+      name: 'abbrev',\n+      'dist-tags': { latest: '1.1.1' },\n+      versions: {\n+        '1.1.1': {\n+          name: 'abbrev',\n+          version: '1.1.1',\n+          dist: {\n+            tarball: 'https://registry.example.com/other/abbrev-1.1.1.tgz',\n+          },\n+        },\n+      },\n+    })\n+\n+    const testdir = t.testdir({\n+      project: {\n+        'package.json': JSON.stringify({\n+          name: 'myproject',\n+          version: '1.0.0',\n+          dependencies: {\n+            abbrev: '1.1.1',\n+          },\n+        }),\n+      },\n+    })\n+\n+    tnock(t, 'https://registry.example.com')\n+      .get('/abbrev')\n+      .reply(200, abbrevPackument5)\n+\n+    tnock(t, 'https://registry.example.com')\n+      .get('/other/abbrev-1.1.1.tgz')\n+      .reply(200, abbrevTGZ)\n+\n+    const arb = new Arborist({\n+      path: resolve(testdir, 'project'),\n+      registry: 'https://registry.example.com',\n+      cache: resolve(testdir, 'cache'),\n+      allowRemote: 'none',\n+    })\n+\n+    await t.resolves(arb.reify(), 'same-origin tarball is allowed for registry root')\n+  })\n+\n   t.test('registry with different protocol should swap protocol', async (t) => {\n     const abbrevPackument4 = JSON.stringify({\n       _id: 'abbrev',\n",
+    "gate": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 150-186 overlap with diff-changed lines [153, 154, 155, 156, 157] in 'test/lib/commands/ci.js'."
+      },
+      "consistency": {
+        "pass": true,
+        "reason": "consistency_check (tree-sitter, lang=javascript): description keywords match diff symbols. Exact overlaps: ['dependencies', 'path', 'registry', 'resolved']. Partial: ['dependencies\u2248dependencies', 'httpsregistryexamplecomevilpkg100tgz\u2248https', 'httpsregistryexamplecomevilpkg100tgz\u2248registry']."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check: stub pass for Python sample '7_npm_registry_path_real'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      },
+      "blind_spot": {
+        "pass": true,
+        "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+      },
+      "invisible_unicode": {
+        "pass": false,
+        "reason": "invisible_unicode_check: 1 invisible Unicode character(s) detected (1x zero_width). Codepoints: ['U+FEFF']. Stripped before Proposer \u2014 flagging fail-closed."
+      }
+    },
+    "verdict": {
+      "verdict": "ungrounded",
+      "checks": {
+        "coverage": {
+          "pass": true,
+          "reason": "coverage_check: claimed lines 150-186 overlap with diff-changed lines [153, 154, 155, 156, 157] in 'test/lib/commands/ci.js'."
+        },
+        "consistency": {
+          "pass": true,
+          "reason": "consistency_check (tree-sitter, lang=javascript): description keywords match diff symbols. Exact overlaps: ['dependencies', 'path', 'registry', 'resolved']. Partial: ['dependencies\u2248dependencies', 'httpsregistryexamplecomevilpkg100tgz\u2248https', 'httpsregistryexamplecomevilpkg100tgz\u2248registry']."
+        },
+        "test_exec": {
+          "pass": true,
+          "reason": "test_exec_check: stub pass for Python sample '7_npm_registry_path_real'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+        },
+        "5w_evidence": {
+          "pass": true,
+          "reason": "All 5W fields were sufficiently answered by the LLM."
+        },
+        "proposer_escalation": {
+          "pass": true,
+          "reason": "No vulnerability detected by Proposer."
+        },
+        "blind_spot": {
+          "pass": true,
+          "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+        },
+        "invisible_unicode": {
+          "pass": false,
+          "reason": "invisible_unicode_check: 1 invisible Unicode character(s) detected (1x zero_width). Codepoints: ['U+FEFF']. Stripped before Proposer \u2014 flagging fail-closed."
+        }
+      },
+      "failing_checks": [
+        "test_exec",
+        "invisible_unicode"
+      ],
+      "reasons": [
+        "test_exec_check: stub pass for Python sample '7_npm_registry_path_real'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here.",
+        "invisible_unicode_check: 1 invisible Unicode character(s) detected (1x zero_width). Codepoints: ['U+FEFF']. Stripped before Proposer \u2014 flagging fail-closed."
+      ]
+    },
+    "explanation": "This PR is ungrounded because test_exec and invisible_unicode failed: stub pass for Python sample '7_npm_registry_path_real'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms h"
+  },
+  {
+    "sample_name": "8_protobuf_php_hardening_real",
+    "run_timestamp": "2026-07-14T06:57:07.781524+00:00",
+    "elapsed_s": 0.0,
+    "pr_url": "https://github.com/protocolbuffers/protobuf/pull/27852",
+    "state": "MERGED",
+    "pr_description": "Harden PHP repeated field indexing and namespace option validation. This PR adds defensive validation to two PHP code paths where malformed input can otherwise reach native runtime or generated-code boundaries. First, the native PHP RepeatedField::offsetSet() path now explicitly rejects negative and out-of-range indexes before converting the assigned value and before casting the index for upb_Array_Set(). This makes offsetSet() consistent with the other ArrayAccess methods and prevents invalid user-provided indexes from reaching the native repeated-field setter path. Second, the PHP generator now validates php_namespace and php_metadata_namespace before using those options to derive PHP namespaces and generated filenames. This prevents malformed schema options from being emitted into generated PHP namespace/file output.",
+    "claim": {
+      "bug_type": "OFFLINE_PARSED",
+      "file": "php/ext/google/protobuf/array.c",
+      "line_range": "348-366",
+      "description": "offline mock for php/ext/google/protobuf/array.c",
+      "confidence": 0.75,
+      "w_what": "Offline mock.",
+      "w_why": "Offline mode.",
+      "w_impact": "Offline mode.",
+      "w_evidence": "Diff: php/ext/google/protobuf/array.c @ 348-366",
+      "w_who": "Offline mode."
+    },
+    "diff_text": "\ufeffdiff --git a/php/ext/google/protobuf/array.c b/php/ext/google/protobuf/array.c\nindex 0b37c47063543..661c0ac06aa3c 100644\n--- a/php/ext/google/protobuf/array.c\n+++ b/php/ext/google/protobuf/array.c\n@@ -348,16 +348,19 @@ PHP_METHOD(RepeatedField, offsetSet) {\n     return;\n   }\n \n+  if (index < 0 || (size_t)index > size) {\n+    zend_error(E_USER_ERROR, \"Element at index %ld doesn't exist.\\n\", index);\n+    return;\n+  }\n+\n   if (!Convert_PhpToUpb(val, &msgval, intern->type, arena)) {\n     return;\n   }\n \n-  if (index > size) {\n-    zend_error(E_USER_ERROR, \"Element at index %ld doesn't exist.\\n\", index);\n-  } else if (index == size) {\n+  if ((size_t)index == size) {\n     upb_Array_Append(intern->array, msgval, Arena_Get(&intern->arena));\n   } else {\n-    upb_Array_Set(intern->array, index, msgval);\n+    upb_Array_Set(intern->array, (size_t)index, msgval);\n   }\n }\n \ndiff --git a/src/google/protobuf/compiler/php/generator_unittest.cc b/src/google/protobuf/compiler/php/generator_unittest.cc\nindex 79d4b10faaeaf..0651e24d187d7 100644\n--- a/src/google/protobuf/compiler/php/generator_unittest.cc\n+++ b/src/google/protobuf/compiler/php/generator_unittest.cc\n@@ -5,12 +5,13 @@\n // license that can be found in the LICENSE file or at\n // https://developers.google.com/open-source/licenses/bsd\n \n+#include <gtest/gtest.h>\n+\n #include <memory>\n \n-#include \"google/protobuf/descriptor.pb.h\"\n-#include <gtest/gtest.h>\n #include \"google/protobuf/compiler/command_line_interface_tester.h\"\n #include \"google/protobuf/compiler/php/php_generator.h\"\n+#include \"google/protobuf/descriptor.pb.h\"\n \n namespace google {\n namespace protobuf {\n@@ -105,6 +106,68 @@ TEST_F(PhpGeneratorTest, ClosedEnumError) {\n   ExpectErrorSubstring(\"Can't generate PHP code for closed enum Foo\");\n }\n \n+TEST_F(PhpGeneratorTest, InvalidPhpNamespaceError) {\n+  CreateTempFile(\"foo.proto\",\n+                 R\"schema(\n+    syntax = \"proto3\";\n+    option php_namespace = \"Foo\\\\Bad-Name\";\n+    message Foo {\n+      int32 bar = 1;\n+    })schema\");\n+\n+  RunProtoc(\n+      \"protocol_compiler --proto_path=$tmpdir --php_out=$tmpdir foo.proto\");\n+\n+  ExpectErrorSubstring(\"Invalid php_namespace option\");\n+}\n+\n+TEST_F(PhpGeneratorTest, InvalidPhpMetadataNamespaceError) {\n+  CreateTempFile(\"foo.proto\",\n+                 R\"schema(\n+    syntax = \"proto3\";\n+    option php_metadata_namespace = \"GPBMetadata/Foo\";\n+    message Foo {\n+      int32 bar = 1;\n+    })schema\");\n+\n+  RunProtoc(\n+      \"protocol_compiler --proto_path=$tmpdir --php_out=$tmpdir foo.proto\");\n+\n+  ExpectErrorSubstring(\"Invalid php_metadata_namespace option\");\n+}\n+\n+TEST_F(PhpGeneratorTest, PhpMetadataRootNamespaceAllowed) {\n+  CreateTempFile(\"root_metadata.proto\",\n+                 R\"schema(\n+    syntax = \"proto3\";\n+    option php_metadata_namespace = \"\\\\\";\n+    message Foo {\n+      int32 bar = 1;\n+    })schema\");\n+\n+  RunProtoc(\n+      \"protocol_compiler --proto_path=$tmpdir --php_out=$tmpdir \"\n+      \"root_metadata.proto\");\n+\n+  ExpectNoErrors();\n+}\n+\n+TEST_F(PhpGeneratorTest, PhpNamespaceOptionsAllowed) {\n+  CreateTempFile(\"foo.proto\",\n+                 R\"schema(\n+    syntax = \"proto3\";\n+    option php_namespace = \"Php\\\\Test\";\n+    option php_metadata_namespace = \"Metadata\\\\Php\\\\Test\";\n+    message Foo {\n+      int32 bar = 1;\n+    })schema\");\n+\n+  RunProtoc(\n+      \"protocol_compiler --proto_path=$tmpdir --php_out=$tmpdir foo.proto\");\n+\n+  ExpectNoErrors();\n+}\n+\n TEST_F(PhpGeneratorTest, ImportPublic) {\n   CreateTempFile(\"common.proto\",\n                  R\"schema(\ndiff --git a/src/google/protobuf/compiler/php/php_generator.cc b/src/google/protobuf/compiler/php/php_generator.cc\nindex a6cd8d4b5d760..efde95fe4f4b5 100644\n--- a/src/google/protobuf/compiler/php/php_generator.cc\n+++ b/src/google/protobuf/compiler/php/php_generator.cc\n@@ -124,6 +124,76 @@ std::string ConstantNamePrefix(absl::string_view classname) {\n   return \"\";\n }\n \n+bool IsPhpIdentifierStart(char c) { return absl::ascii_isalpha(c) || c == '_'; }\n+\n+bool IsPhpIdentifierPart(char c) { return absl::ascii_isalnum(c) || c == '_'; }\n+\n+bool IsValidPhpNamespace(absl::string_view name, bool allow_root_namespace) {\n+  if (name.empty()) {\n+    return true;\n+  }\n+  if (allow_root_namespace && name == \"\\\\\") {\n+    return true;\n+  }\n+\n+  bool segment_start = true;\n+  for (char c : name) {\n+    if (c == '\\\\') {\n+      if (segment_start) {\n+        return false;\n+      }\n+      segment_start = true;\n+      continue;\n+    }\n+    if (segment_start) {\n+      if (!IsPhpIdentifierStart(c)) {\n+        return false;\n+      }\n+      segment_start = false;\n+      continue;\n+    }\n+    if (!IsPhpIdentifierPart(c)) {\n+      return false;\n+    }\n+  }\n+\n+  return !segment_start;\n+}\n+\n+bool ValidatePhpNamespaceOption(const FileDescriptor* file,\n+                                absl::string_view option_name,\n+                                absl::string_view option_value,\n+                                bool allow_root_namespace, std::string* error) {\n+  if (IsValidPhpNamespace(option_value, allow_root_namespace)) {\n+    return true;\n+  }\n+\n+  *error =\n+      absl::StrCat(\"Invalid \", option_name, \" option \\\"\",\n+                   absl::CEscape(option_value), \"\\\" in file \", file->name(),\n+                   \": expected PHP identifiers separated by \"\n+                   \"backslashes.\\n\");\n+  return false;\n+}\n+\n+bool ValidatePhpOptions(const FileDescriptor* file, std::string* error) {\n+  if (file->options().has_php_namespace() &&\n+      !ValidatePhpNamespaceOption(file, \"php_namespace\",\n+                                  file->options().php_namespace(), false,\n+                                  error)) {\n+    return false;\n+  }\n+\n+  if (file->options().has_php_metadata_namespace() &&\n+      !ValidatePhpNamespaceOption(file, \"php_metadata_namespace\",\n+                                  file->options().php_metadata_namespace(),\n+                                  true, error)) {\n+    return false;\n+  }\n+\n+  return true;\n+}\n+\n template <typename DescriptorType>\n std::string RootPhpNamespace(const DescriptorType* desc,\n                              const Options& options) {\n@@ -2212,6 +2282,9 @@ bool Generator::Generate(const FileDescriptor* file, const Options& options,\n         \"Can only generate PHP code for google/protobuf/descriptor.proto.\\n\";\n     return false;\n   }\n+  if (!ValidatePhpOptions(file, error)) {\n+    return false;\n+  }\n \n   return GenerateFile(file, options, generator_context, error);\n }\n",
+    "gate": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 348-366 overlap with diff-changed lines [351, 352, 353, 354, 355] in 'php/ext/google/protobuf/array.c'."
+      },
+      "consistency": {
+        "pass": true,
+        "reason": "consistency_check (tree-sitter, lang=c): description keywords match diff symbols. Exact overlaps: ['array', 'index']. Partial: ['array\u2248array', 'array\u2248upb_array_set', 'indexes\u2248index']."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check: stub pass for Python sample '8_protobuf_php_hardening_real'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      },
+      "blind_spot": {
+        "pass": true,
+        "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+      },
+      "invisible_unicode": {
+        "pass": false,
+        "reason": "invisible_unicode_check: 1 invisible Unicode character(s) detected (1x zero_width). Codepoints: ['U+FEFF']. Stripped before Proposer \u2014 flagging fail-closed."
+      }
+    },
+    "verdict": {
+      "verdict": "ungrounded",
+      "checks": {
+        "coverage": {
+          "pass": true,
+          "reason": "coverage_check: claimed lines 348-366 overlap with diff-changed lines [351, 352, 353, 354, 355] in 'php/ext/google/protobuf/array.c'."
+        },
+        "consistency": {
+          "pass": true,
+          "reason": "consistency_check (tree-sitter, lang=c): description keywords match diff symbols. Exact overlaps: ['array', 'index']. Partial: ['array\u2248array', 'array\u2248upb_array_set', 'indexes\u2248index']."
+        },
+        "test_exec": {
+          "pass": true,
+          "reason": "test_exec_check: stub pass for Python sample '8_protobuf_php_hardening_real'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+        },
+        "5w_evidence": {
+          "pass": true,
+          "reason": "All 5W fields were sufficiently answered by the LLM."
+        },
+        "proposer_escalation": {
+          "pass": true,
+          "reason": "No vulnerability detected by Proposer."
+        },
+        "blind_spot": {
+          "pass": true,
+          "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+        },
+        "invisible_unicode": {
+          "pass": false,
+          "reason": "invisible_unicode_check: 1 invisible Unicode character(s) detected (1x zero_width). Codepoints: ['U+FEFF']. Stripped before Proposer \u2014 flagging fail-closed."
+        }
+      },
+      "failing_checks": [
+        "test_exec",
+        "invisible_unicode"
+      ],
+      "reasons": [
+        "test_exec_check: stub pass for Python sample '8_protobuf_php_hardening_real'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here.",
+        "invisible_unicode_check: 1 invisible Unicode character(s) detected (1x zero_width). Codepoints: ['U+FEFF']. Stripped before Proposer \u2014 flagging fail-closed."
+      ]
+    },
+    "explanation": "This PR is ungrounded because test_exec and invisible_unicode failed: stub pass for Python sample '8_protobuf_php_hardening_real'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechani"
+  },
+  {
+    "sample_name": "cli_9473",
+    "run_timestamp": "2026-07-14T06:25:41.182749+00:00",
+    "elapsed_s": 3.13,
+    "pr_url": "",
+    "state": "",
+    "pr_description": "fix: validate registry path for allow-remote tarball exception\n\n## Summary\n\nTighten the registry-mediated tarball exception used when extracting registry dependencies under `allow-remote`.\n\nPreviously Arborist treated a resolved tarball as registry-mediated when its hostname matched the selected registry hostname. That allowed same-host sibling paths to bypass `allow-remote=none` for path-qualified registries, for example:\n\n- registry: `https://registry.example.com/npm/`\n- resolved tarball: `https://registry.example.com/evil/pkg-1.0.0.tgz`\n\nThis change requires the resolved tarball URL to match the registry origin and remain under the selected registry path before overriding pacote's `allowRemote` handling.\n\nThis is a tightening of the registry tarball exception introduced around #9348, and is related to the `allow-remote=none` behavior discussed in #9347, but covers the path-qualified registry case.\n\nFor root-scoped registries, origin match remains sufficient because there is no registry path boundary to enforce.\n\n## Testing\n\n- `node node_modules/tap/bin/run.js test/lib/commands/ci.js --no-coverage`\n- `node node_modules/tap/bin/run.js test/lib/commands/install.js --no-coverage`\n",
+    "claim": {
+      "bug_type": "OFFLINE_PARSED",
+      "file": "test/lib/commands/ci.js",
+      "line_range": "150-186",
+      "description": "offline mock for test/lib/commands/ci.js",
+      "confidence": 0.75,
+      "w_what": "Offline mock.",
+      "w_why": "Offline mode.",
+      "w_impact": "Offline mode.",
+      "w_evidence": "Diff: test/lib/commands/ci.js @ 150-186",
+      "w_who": "Offline mode."
+    },
+    "diff_text": "diff --git a/test/lib/commands/ci.js b/test/lib/commands/ci.js\nindex e5639c3e04f8d..15559dc688b09 100644\n--- a/test/lib/commands/ci.js\n+++ b/test/lib/commands/ci.js\n@@ -150,6 +150,37 @@ t.test('--no-audit and --ignore-scripts', async t => {\n   t.match(joinedOutput(), 'added 1 package in', 'would fail if install script ran')\n })\n \n+t.test('allow-remote=none blocks same-host tarball outside registry path', async t => {\n+  const token = 'test-path-token'\n+  const registryUrl = 'https://registry.example.com/npm/'\n+  const evilTarball = 'https://registry.example.com/evil/abbrev-1.0.0.tgz'\n+  const lock = JSON.parse(JSON.stringify(packageLock))\n+  lock.packages['node_modules/abbrev'].resolved = evilTarball\n+  lock.dependencies.abbrev.resolved = evilTarball\n+\n+  const { npm } = await loadMockNpm(t, {\n+    config: {\n+      audit: false,\n+      'allow-remote': 'none',\n+      registry: registryUrl,\n+      [`//registry.example.com/npm/:_authToken`]: token,\n+    },\n+    prefixDir: {\n+      abbrev,\n+      'package.json': JSON.stringify(packageJson),\n+      'package-lock.json': JSON.stringify(lock),\n+    },\n+  })\n+\n+  await t.rejects(\n+    npm.exec('ci', []),\n+    { code: 'EALLOWREMOTE' },\n+    'sibling-path tarball is blocked by allow-remote=none'\n+  )\n+  const nmAbbrev = path.join(npm.prefix, 'node_modules', 'abbrev')\n+  t.equal(fs.existsSync(nmAbbrev), false, 'does not install tarball outside configured registry path')\n+})\n+\n t.test('lifecycle scripts', async t => {\n   const scripts = []\n   const { npm, registry } = await loadMockNpm(t, {\ndiff --git a/workspaces/arborist/lib/arborist/reify.js b/workspaces/arborist/lib/arborist/reify.js\nindex 40e6c1853287d..aced227bb3094 100644\n--- a/workspaces/arborist/lib/arborist/reify.js\n+++ b/workspaces/arborist/lib/arborist/reify.js\n@@ -844,17 +844,18 @@ module.exports = cls => class Reifier extends cls {\n \n   // When extracting a registry-resolved package, the spec we hand to pacote is name@URL.\n   // pacote re-parses that with npa and gets spec.type === 'remote', so without an override the allow-remote gate would fire on every registry tarball (both =none and =root mis-fire).\n-  // Returns true only when we are confident this is a registry-mediated install: the node's inbound edges must all be registry-typed (no exotic spec smuggled the URL in) AND the resolved URL's host must match the registry npm-registry-fetch selected for this spec, so a tampered lockfile pointing at an attacker host still hits the gate.\n+  // Returns true only when we are confident this is a registry-mediated install.\n   #isRegistryResolvedTarball (node) {\n     if (!node.resolved || !node.isRegistryDependency) {\n       return false\n     }\n     try {\n-      // Hostnames are case-insensitive; lowercase both sides for safety even though WHATWG URL already normalizes.\n-      const resolvedHost = new URL(node.resolved).hostname.toLowerCase()\n+      const resolved = new URL(node.resolved)\n       // pickRegistry only consults spec.scope, so a bare-name (tag) parse is sufficient and avoids a node.version dependency.\n-      const registryHost = new URL(pickRegistry(npa(node.name), this.options)).hostname.toLowerCase()\n-      return resolvedHost === registryHost\n+      const registry = new URL(pickRegistry(npa(node.name), this.options))\n+      const registryPath = registry.pathname.replace(/\\/?$/, '/')\n+      return resolved.origin === registry.origin &&\n+        (registryPath === '/' || resolved.pathname.startsWith(registryPath))\n     } catch {\n       return false\n     }\ndiff --git a/workspaces/arborist/test/arborist/reify.js b/workspaces/arborist/test/arborist/reify.js\nindex c483bbc54608c..f0f033a1ea8e2 100644\n--- a/workspaces/arborist/test/arborist/reify.js\n+++ b/workspaces/arborist/test/arborist/reify.js\n@@ -3717,6 +3717,143 @@ t.test('should preserve exact ranges, missing actual tree', async (t) => {\n     await t.resolves(arb.reify(), 'reify should complete successfully')\n   })\n \n+  t.test('allowRemote=none allows registry tarball under registry path without trailing slash', async t => {\n+    const abbrevPackument5 = JSON.stringify({\n+      _id: 'abbrev',\n+      _rev: 'lkjadflkjasdf',\n+      name: 'abbrev',\n+      'dist-tags': { latest: '1.1.1' },\n+      versions: {\n+        '1.1.1': {\n+          name: 'abbrev',\n+          version: '1.1.1',\n+          dist: {\n+            tarball: 'https://registry.example.com/npm/abbrev/-/abbrev-1.1.1.tgz',\n+          },\n+        },\n+      },\n+    })\n+\n+    const testdir = t.testdir({\n+      project: {\n+        'package.json': JSON.stringify({\n+          name: 'myproject',\n+          version: '1.0.0',\n+          dependencies: {\n+            abbrev: '1.1.1',\n+          },\n+        }),\n+      },\n+    })\n+\n+    tnock(t, 'https://registry.example.com')\n+      .get('/npm/abbrev')\n+      .reply(200, abbrevPackument5)\n+\n+    tnock(t, 'https://registry.example.com')\n+      .get('/npm/abbrev/-/abbrev-1.1.1.tgz')\n+      .reply(200, abbrevTGZ)\n+\n+    const arb = new Arborist({\n+      path: resolve(testdir, 'project'),\n+      registry: 'https://registry.example.com/npm',\n+      cache: resolve(testdir, 'cache'),\n+      allowRemote: 'none',\n+    })\n+\n+    await t.resolves(arb.reify(), 'registry tarball under configured path is allowed')\n+  })\n+\n+  t.test('allowRemote=none blocks same-origin tarball outside registry path', async t => {\n+    const abbrevPackument5 = JSON.stringify({\n+      _id: 'abbrev',\n+      _rev: 'lkjadflkjasdf',\n+      name: 'abbrev',\n+      'dist-tags': { latest: '1.1.1' },\n+      versions: {\n+        '1.1.1': {\n+          name: 'abbrev',\n+          version: '1.1.1',\n+          dist: {\n+            tarball: 'https://registry.example.com/evil/abbrev-1.1.1.tgz',\n+          },\n+        },\n+      },\n+    })\n+\n+    const testdir = t.testdir({\n+      project: {\n+        'package.json': JSON.stringify({\n+          name: 'myproject',\n+          version: '1.0.0',\n+          dependencies: {\n+            abbrev: '1.1.1',\n+          },\n+        }),\n+      },\n+    })\n+\n+    tnock(t, 'https://registry.example.com')\n+      .get('/npm/abbrev')\n+      .reply(200, abbrevPackument5)\n+\n+    const arb = new Arborist({\n+      path: resolve(testdir, 'project'),\n+      registry: 'https://registry.example.com/npm/',\n+      cache: resolve(testdir, 'cache'),\n+      allowRemote: 'none',\n+    })\n+\n+    await t.rejects(arb.reify(), { code: 'EALLOWREMOTE' }, 'sibling path tarball is blocked')\n+  })\n+\n+  t.test('allowRemote=none allows same-origin tarball for root registry path', async t => {\n+    const abbrevPackument5 = JSON.stringify({\n+      _id: 'abbrev',\n+      _rev: 'lkjadflkjasdf',\n+      name: 'abbrev',\n+      'dist-tags': { latest: '1.1.1' },\n+      versions: {\n+        '1.1.1': {\n+          name: 'abbrev',\n+          version: '1.1.1',\n+          dist: {\n+            tarball: 'https://registry.example.com/other/abbrev-1.1.1.tgz',\n+          },\n+        },\n+      },\n+    })\n+\n+    const testdir = t.testdir({\n+      project: {\n+        'package.json': JSON.stringify({\n+          name: 'myproject',\n+          version: '1.0.0',\n+          dependencies: {\n+            abbrev: '1.1.1',\n+          },\n+        }),\n+      },\n+    })\n+\n+    tnock(t, 'https://registry.example.com')\n+      .get('/abbrev')\n+      .reply(200, abbrevPackument5)\n+\n+    tnock(t, 'https://registry.example.com')\n+      .get('/other/abbrev-1.1.1.tgz')\n+      .reply(200, abbrevTGZ)\n+\n+    const arb = new Arborist({\n+      path: resolve(testdir, 'project'),\n+      registry: 'https://registry.example.com',\n+      cache: resolve(testdir, 'cache'),\n+      allowRemote: 'none',\n+    })\n+\n+    await t.resolves(arb.reify(), 'same-origin tarball is allowed for registry root')\n+  })\n+\n   t.test('registry with different protocol should swap protocol', async (t) => {\n     const abbrevPackument4 = JSON.stringify({\n       _id: 'abbrev',\n",
+    "gate": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 150-186 overlap with diff-changed lines [153, 154, 155, 156, 157] in 'test/lib/commands/ci.js'."
+      },
+      "consistency": {
+        "pass": true,
+        "reason": "consistency_check (tree-sitter, lang=javascript): description keywords match diff symbols. Exact overlaps: ['dependencies', 'path', 'registry', 'resolved']. Partial: ['dependencies\u2248dependencies', 'httpsregistryexamplecomevilpkg100tgz\u2248https', 'httpsregistryexamplecomevilpkg100tgz\u2248registry']."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check: stub pass for Python sample 'https://github.com/npm/cli/pull/9473'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      },
+      "blind_spot": {
+        "pass": true,
+        "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+      },
+      "invisible_unicode": {
+        "pass": true,
+        "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+      }
+    },
+    "verdict": {
+      "verdict": "grounded",
+      "checks": {
+        "coverage": {
+          "pass": true,
+          "reason": "coverage_check: claimed lines 150-186 overlap with diff-changed lines [153, 154, 155, 156, 157] in 'test/lib/commands/ci.js'."
+        },
+        "consistency": {
+          "pass": true,
+          "reason": "consistency_check (tree-sitter, lang=javascript): description keywords match diff symbols. Exact overlaps: ['dependencies', 'path', 'registry', 'resolved']. Partial: ['dependencies\u2248dependencies', 'httpsregistryexamplecomevilpkg100tgz\u2248https', 'httpsregistryexamplecomevilpkg100tgz\u2248registry']."
+        },
+        "test_exec": {
+          "pass": true,
+          "reason": "test_exec_check: stub pass for Python sample 'https://github.com/npm/cli/pull/9473'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+        },
+        "5w_evidence": {
+          "pass": true,
+          "reason": "All 5W fields were sufficiently answered by the LLM."
+        },
+        "proposer_escalation": {
+          "pass": true,
+          "reason": "No vulnerability detected by Proposer."
+        },
+        "blind_spot": {
+          "pass": true,
+          "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+        },
+        "invisible_unicode": {
+          "pass": true,
+          "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+        }
+      },
+      "failing_checks": [],
+      "reasons": [
+        "All checks passed."
+      ]
+    },
+    "explanation": "All three deterministic Gate checks passed: coverage increased on the claimed lines, the description matches the diff's AST symbols, and the test suite executed correctly."
+  },
+  {
+    "sample_name": "cpython_153680",
+    "run_timestamp": "2026-07-14T09:29:01.270585+00:00",
+    "elapsed_s": 7.55,
+    "pr_url": "https://github.com/python/cpython/pull/153680",
+    "state": "OPEN",
+    "pr_description": "gh-153679: Raise ZipImportError for an invalid UTF-8 file name in zipimport\n\n`zipimport.zipimporter()` is documented to raise `ZipImportError` for an\ninvalid archive, but `_read_directory()` leaked a raw `UnicodeDecodeError`\nwhen a central directory entry set the UTF-8 file name flag (`0x800`) but\nstored bytes that are not valid UTF-8: the UTF-8 branch called `name.decode()`\nunguarded, while the sibling non-UTF-8 branch already handles\n`UnicodeDecodeError`.\n\nGuard the UTF-8 decode and raise `ZipImportError`, matching the documented\ncontract and every other corruption path in the function.\n\n\n<!-- gh-issue-number: gh-153679 -->\n* Issue: gh-153679\n<!-- /gh-issue-number -->\n",
+    "claim": {
+      "bug_type": "MISSING_VALIDATION",
+      "file": "Lib/zipimport.py",
+      "line_range": "430-435",
+      "description": "Wraps the UTF-8 decoding of zip file names in a try-except block to catch UnicodeDecodeError and raise ZipImportError instead.",
+      "confidence": 1.0,
+      "w_what": "Added a try-except block around 'name.decode()' in '_read_directory' to catch 'UnicodeDecodeError' and raise 'ZipImportError'.",
+      "w_why": "To prevent the leakage of raw 'UnicodeDecodeError' exceptions when processing malformed UTF-8 file names in zip archives, ensuring compliance with the documented 'ZipImportError' contract.",
+      "w_impact": "If incomplete, the application may crash or leak internal decoding errors to the caller instead of the expected 'ZipImportError'.",
+      "w_evidence": "except UnicodeDecodeError:\n                        raise ZipImportError(\n                            f\"can't decode file name in Zip file: {archive!r}\",\n                            path=archive)",
+      "w_who": "A user or process attempting to import from a maliciously crafted or corrupted zip file containing a central directory entry with the 0x800 UTF-8 flag set but invalid UTF-8 bytes."
+    },
+    "diff_text": "diff --git a/Lib/test/test_zipimport.py b/Lib/test/test_zipimport.py\nindex 76cd85709a63af..c3c43f39a58e85 100644\n--- a/Lib/test/test_zipimport.py\n+++ b/Lib/test/test_zipimport.py\n@@ -1074,6 +1074,22 @@ def testNotZipFile(self):\n         fp.close()\n         self.assertZipFailure(TESTMOD)\n \n+    def testInvalidUTF8FileName(self):\n+        # A UTF-8-flagged file name that is not valid UTF-8 raises ZipImportError.\n+        UTF8_FLAG = 0x800\n+        name = b'\\xff\\xfe\\xff'\n+        cdh = b'PK\\x01\\x02' + struct.pack(\n+            '<HHHHHHIIIHHHHHII',\n+            20, 20, UTF8_FLAG, 0, 0, 0, 0, 50, 100,\n+            len(name), 0, 0, 0, 0, 0, 0)\n+        cdh += name\n+        eocd = b'PK\\x05\\x06' + struct.pack(\n+            '<HHHHIIH', 0, 0, 1, 1, len(cdh), 0, 0)\n+        os_helper.unlink(TESTMOD)\n+        with open(TESTMOD, 'wb') as fp:\n+            fp.write(cdh + eocd)\n+        self.assertZipFailure(TESTMOD)\n+\n     # XXX: disabled until this works on Big-endian machines\n     def _testBogusZipFile(self):\n         os_helper.unlink(TESTMOD)\ndiff --git a/Lib/zipimport.py b/Lib/zipimport.py\nindex 19279d1c2bea36..c232b39e4cef04 100644\n--- a/Lib/zipimport.py\n+++ b/Lib/zipimport.py\n@@ -427,7 +427,12 @@ def _read_directory(archive):\n \n                 if flags & 0x800:\n                     # UTF-8 file names extension\n-                    name = name.decode()\n+                    try:\n+                        name = name.decode()\n+                    except UnicodeDecodeError:\n+                        raise ZipImportError(\n+                            f\"can't decode file name in Zip file: {archive!r}\",\n+                            path=archive)\n                 else:\n                     # Historical ZIP filename encoding\n                     try:\ndiff --git a/Misc/NEWS.d/next/Library/2026-07-13-00-10-00.gh-issue-153679.RJ2WGB.rst b/Misc/NEWS.d/next/Library/2026-07-13-00-10-00.gh-issue-153679.RJ2WGB.rst\nnew file mode 100644\nindex 00000000000000..d612903f225021\n--- /dev/null\n+++ b/Misc/NEWS.d/next/Library/2026-07-13-00-10-00.gh-issue-153679.RJ2WGB.rst\n@@ -0,0 +1,3 @@\n+:class:`zipimport.zipimporter` now raises :exc:`zipimport.ZipImportError`\n+instead of :exc:`UnicodeDecodeError` for a UTF-8-flagged file name that is not\n+valid UTF-8. Patch by tonghuaroot.\n",
+    "gate": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 430-435 overlap with diff-changed lines [430, 431, 432, 433, 434] in 'Lib/zipimport.py'."
+      },
+      "consistency": {
+        "pass": true,
+        "reason": "consistency_check (tree-sitter, lang=python): description keywords match diff symbols. Exact overlaps: ['archive', 'decode', 'name', 'path']. Partial: ['archive\u2248archive', 'decode\u2248decode', 'decode\u2248unicodedecodeerror']."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check: stub pass for Python sample 'https://github.com/python/cpython/pull/153680'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      },
+      "blind_spot": {
+        "pass": true,
+        "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+      },
+      "invisible_unicode": {
+        "pass": true,
+        "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+      }
+    },
+    "verdict": {
+      "verdict": "needs-review",
+      "checks": {
+        "coverage": {
+          "pass": true,
+          "reason": "coverage_check: claimed lines 430-435 overlap with diff-changed lines [430, 431, 432, 433, 434] in 'Lib/zipimport.py'."
+        },
+        "consistency": {
+          "pass": true,
+          "reason": "consistency_check (tree-sitter, lang=python): description keywords match diff symbols. Exact overlaps: ['archive', 'decode', 'name', 'path']. Partial: ['archive\u2248archive', 'decode\u2248decode', 'decode\u2248unicodedecodeerror']."
+        },
+        "test_exec": {
+          "pass": true,
+          "reason": "test_exec_check: stub pass for Python sample 'https://github.com/python/cpython/pull/153680'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+        },
+        "5w_evidence": {
+          "pass": true,
+          "reason": "All 5W fields were sufficiently answered by the LLM."
+        },
+        "proposer_escalation": {
+          "pass": false,
+          "reason": "Proposer self-reported a risk category (MISSING_VALIDATION). This is the Proposer's own claim, NOT independently verified by the Gate \u2014 routed to human review as a precaution, not a confirmed finding."
+        },
+        "blind_spot": {
+          "pass": true,
+          "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+        },
+        "invisible_unicode": {
+          "pass": true,
+          "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+        }
+      },
+      "failing_checks": [
+        "test_exec",
+        "proposer_escalation"
+      ],
+      "reasons": [
+        "test_exec_check: stub pass for Python sample 'https://github.com/python/cpython/pull/153680'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here.",
+        "Proposer self-reported a risk category (MISSING_VALIDATION). This is the Proposer's own claim, NOT independently verified by the Gate \u2014 routed to human review as a precaution, not a confirmed finding."
+      ]
+    },
+    "explanation": "This pull request requires human review because the proposer self-reported a missing validation risk and the automated test execution check is currently a stub."
+  },
+  {
+    "sample_name": "live_npm_cli_9473",
+    "run_timestamp": "2026-07-14T09:55:52.247113+00:00",
+    "elapsed_s": 9.3,
+    "pr_url": "https://github.com/npm/cli/pull/9473",
+    "state": "MERGED",
+    "pr_description": "fix: validate registry path for allow-remote tarball exception. ## Summary\n\nTighten the registry-mediated tarball exception used when extracting registry dependencies under `allow-remote`.\n\nPreviously Arborist treated a resolved tarball as registry-mediated when its hostname matched the selected registry hostname. That allowed same-host sibling paths to bypass `allow-remote=none` for path-qualified registries, for example:\n\n- registry: `https://registry.example.com/npm/`\n- resolved tarball: `https://registry.example.com/evil/pkg-1.0.0.tgz`\n\nThis change requires the resolved tarball URL to match the registry origin and remain under the selected registry path before overriding pacote's `allowRemote` handling.\n\nThis is a tightening of the registry tarball exception introduced around #9348, and is related to the `allow-remote=none` behavior discussed in #9347, but covers the path-qualified registry case.\n\nFor root-scoped registries, origin match remains sufficient because there is no registry path boundary to enforce.\n\n## Testing\n\n- `node node_modules/tap/bin/run.js test/lib/commands/ci.js --no-coverage`\n- `node node_modules/tap/bin/run.js test/lib/commands/install.js --no-coverage`",
+    "claim": {
+      "bug_type": "MISSING_VALIDATION",
+      "file": "workspaces/arborist/lib/arborist/reify.js",
+      "line_range": "844-862",
+      "description": "Updates Reifier.#isRegistryResolvedTarball to require the resolved tarball URL to have the same origin as the selected registry and to be within the registry path boundary (or at root) before treating it as registry-mediated.",
+      "confidence": 0.86,
+      "w_what": "In workspaces/arborist/lib/arborist/reify.js, #isRegistryResolvedTarball removes the host-only comparison and instead computes registryPath from the selected registry URL pathname and returns true only if resolved.origin matches registry.origin and resolved.pathname is within registryPath (or registryPath is '/').",
+      "w_why": "To prevent allow-remote=none from being bypassed by a tampered lockfile where a resolved tarball is on the same hostname as the configured registry but outside the configured registry path.",
+      "w_impact": "If wrong or incomplete, Arborist may incorrectly classify some registry-resolved tarballs as registry-mediated (allowing remote extraction when it should be blocked) or incorrectly block legitimate registry tarballs that are within the intended registry path boundary.",
+      "w_evidence": "return resolved.origin === registry.origin &&\n        (registryPath === '/' || resolved.pathname.startsWith(registryPath))",
+      "w_who": "A tampered package-lock.json (or other lock source) that sets node.resolved to a same-origin/same-host tarball URL outside the configured registry path while node.isRegistryDependency is true would trigger the previous bypass; the diff\u2019s tests construct this by setting lock.packages['node_modules/abbrev'].resolved and lock.dependencies.abbrev.resolved to 'https://registry.example.com/evil/abbrev-1.0.0.tgz' while registry is 'https://registry.example.com/npm/' and allowRemote is 'none'."
+    },
+    "diff_text": "diff --git a/test/lib/commands/ci.js b/test/lib/commands/ci.js\nindex e5639c3e04f8d..15559dc688b09 100644\n--- a/test/lib/commands/ci.js\n+++ b/test/lib/commands/ci.js\n@@ -150,6 +150,37 @@ t.test('--no-audit and --ignore-scripts', async t => {\n   t.match(joinedOutput(), 'added 1 package in', 'would fail if install script ran')\n })\n \n+t.test('allow-remote=none blocks same-host tarball outside registry path', async t => {\n+  const token = 'test-path-token'\n+  const registryUrl = 'https://registry.example.com/npm/'\n+  const evilTarball = 'https://registry.example.com/evil/abbrev-1.0.0.tgz'\n+  const lock = JSON.parse(JSON.stringify(packageLock))\n+  lock.packages['node_modules/abbrev'].resolved = evilTarball\n+  lock.dependencies.abbrev.resolved = evilTarball\n+\n+  const { npm } = await loadMockNpm(t, {\n+    config: {\n+      audit: false,\n+      'allow-remote': 'none',\n+      registry: registryUrl,\n+      [`//registry.example.com/npm/:_authToken`]: token,\n+    },\n+    prefixDir: {\n+      abbrev,\n+      'package.json': JSON.stringify(packageJson),\n+      'package-lock.json': JSON.stringify(lock),\n+    },\n+  })\n+\n+  await t.rejects(\n+    npm.exec('ci', []),\n+    { code: 'EALLOWREMOTE' },\n+    'sibling-path tarball is blocked by allow-remote=none'\n+  )\n+  const nmAbbrev = path.join(npm.prefix, 'node_modules', 'abbrev')\n+  t.equal(fs.existsSync(nmAbbrev), false, 'does not install tarball outside configured registry path')\n+})\n+\n t.test('lifecycle scripts', async t => {\n   const scripts = []\n   const { npm, registry } = await loadMockNpm(t, {\ndiff --git a/workspaces/arborist/lib/arborist/reify.js b/workspaces/arborist/lib/arborist/reify.js\nindex 40e6c1853287d..aced227bb3094 100644\n--- a/workspaces/arborist/lib/arborist/reify.js\n+++ b/workspaces/arborist/lib/arborist/reify.js\n@@ -844,17 +844,18 @@ module.exports = cls => class Reifier extends cls {\n \n   // When extracting a registry-resolved package, the spec we hand to pacote is name@URL.\n   // pacote re-parses that with npa and gets spec.type === 'remote', so without an override the allow-remote gate would fire on every registry tarball (both =none and =root mis-fire).\n-  // Returns true only when we are confident this is a registry-mediated install: the node's inbound edges must all be registry-typed (no exotic spec smuggled the URL in) AND the resolved URL's host must match the registry npm-registry-fetch selected for this spec, so a tampered lockfile pointing at an attacker host still hits the gate.\n+  // Returns true only when we are confident this is a registry-mediated install.\n   #isRegistryResolvedTarball (node) {\n     if (!node.resolved || !node.isRegistryDependency) {\n       return false\n     }\n     try {\n-      // Hostnames are case-insensitive; lowercase both sides for safety even though WHATWG URL already normalizes.\n-      const resolvedHost = new URL(node.resolved).hostname.toLowerCase()\n+      const resolved = new URL(node.resolved)\n       // pickRegistry only consults spec.scope, so a bare-name (tag) parse is sufficient and avoids a node.version dependency.\n-      const registryHost = new URL(pickRegistry(npa(node.name), this.options)).hostname.toLowerCase()\n-      return resolvedHost === registryHost\n+      const registry = new URL(pickRegistry(npa(node.name), this.options))\n+      const registryPath = registry.pathname.replace(/\\/?$/, '/')\n+      return resolved.origin === registry.origin &&\n+        (registryPath === '/' || resolved.pathname.startsWith(registryPath))\n     } catch {\n       return false\n     }\ndiff --git a/workspaces/arborist/test/arborist/reify.js b/workspaces/arborist/test/arborist/reify.js\nindex c483bbc54608c..f0f033a1ea8e2 100644\n--- a/workspaces/arborist/test/arborist/reify.js\n+++ b/workspaces/arborist/test/arborist/reify.js\n@@ -3717,6 +3717,143 @@ t.test('should preserve exact ranges, missing actual tree', async (t) => {\n     await t.resolves(arb.reify(), 'reify should complete successfully')\n   })\n \n+  t.test('allowRemote=none allows registry tarball under registry path without trailing slash', async t => {\n+    const abbrevPackument5 = JSON.stringify({\n+      _id: 'abbrev',\n+      _rev: 'lkjadflkjasdf',\n+      name: 'abbrev',\n+      'dist-tags': { latest: '1.1.1' },\n+      versions: {\n+        '1.1.1': {\n+          name: 'abbrev',\n+          version: '1.1.1',\n+          dist: {\n+            tarball: 'https://registry.example.com/npm/abbrev/-/abbrev-1.1.1.tgz',\n+          },\n+        },\n+      },\n+    })\n+\n+    const testdir = t.testdir({\n+      project: {\n+        'package.json': JSON.stringify({\n+          name: 'myproject',\n+          version: '1.0.0',\n+          dependencies: {\n+            abbrev: '1.1.1',\n+          },\n+        }),\n+      },\n+    })\n+\n+    tnock(t, 'https://registry.example.com')\n+      .get('/npm/abbrev')\n+      .reply(200, abbrevPackument5)\n+\n+    tnock(t, 'https://registry.example.com')\n+      .get('/npm/abbrev/-/abbrev-1.1.1.tgz')\n+      .reply(200, abbrevTGZ)\n+\n+    const arb = new Arborist({\n+      path: resolve(testdir, 'project'),\n+      registry: 'https://registry.example.com/npm',\n+      cache: resolve(testdir, 'cache'),\n+      allowRemote: 'none',\n+    })\n+\n+    await t.resolves(arb.reify(), 'registry tarball under configured path is allowed')\n+  })\n+\n+  t.test('allowRemote=none blocks same-origin tarball outside registry path', async t => {\n+    const abbrevPackument5 = JSON.stringify({\n+      _id: 'abbrev',\n+      _rev: 'lkjadflkjasdf',\n+      name: 'abbrev',\n+      'dist-tags': { latest: '1.1.1' },\n+      versions: {\n+        '1.1.1': {\n+          name: 'abbrev',\n+          version: '1.1.1',\n+          dist: {\n+            tarball: 'https://registry.example.com/evil/abbrev-1.1.1.tgz',\n+          },\n+        },\n+      },\n+    })\n+\n+    const testdir = t.testdir({\n+      project: {\n+        'package.json': JSON.stringify({\n+          name: 'myproject',\n+          version: '1.0.0',\n+          dependencies: {\n+            abbrev: '1.1.1',\n+          },\n+        }),\n+      },\n+    })\n+\n+    tnock(t, 'https://registry.example.com')\n+      .get('/npm/abbrev')\n+      .reply(200, abbrevPackument5)\n+\n+    const arb = new Arborist({\n+      path: resolve(testdir, 'project'),\n+      registry: 'https://registry.example.com/npm/',\n+      cache: resolve(testdir, 'cache'),\n+      allowRemote: 'none',\n+    })\n+\n+    await t.rejects(arb.reify(), { code: 'EALLOWREMOTE' }, 'sibling path tarball is blocked')\n+  })\n+\n+  t.test('allowRemote=none allows same-origin tarball for root registry path', async t => {\n+    const abbrevPackument5 = JSON.stringify({\n+      _id: 'abbrev',\n+      _rev: 'lkjadflkjasdf',\n+      name: 'abbrev',\n+      'dist-tags': { latest: '1.1.1' },\n+      versions: {\n+        '1.1.1': {\n+          name: 'abbrev',\n+          version: '1.1.1',\n+          dist: {\n+            tarball: 'https://registry.example.com/other/abbrev-1.1.1.tgz',\n+          },\n+        },\n+      },\n+    })\n+\n+    const testdir = t.testdir({\n+      project: {\n+        'package.json': JSON.stringify({\n+          name: 'myproject',\n+          version: '1.0.0',\n+          dependencies: {\n+            abbrev: '1.1.1',\n+          },\n+        }),\n+      },\n+    })\n+\n+    tnock(t, 'https://registry.example.com')\n+      .get('/abbrev')\n+      .reply(200, abbrevPackument5)\n+\n+    tnock(t, 'https://registry.example.com')\n+      .get('/other/abbrev-1.1.1.tgz')\n+      .reply(200, abbrevTGZ)\n+\n+    const arb = new Arborist({\n+      path: resolve(testdir, 'project'),\n+      registry: 'https://registry.example.com',\n+      cache: resolve(testdir, 'cache'),\n+      allowRemote: 'none',\n+    })\n+\n+    await t.resolves(arb.reify(), 'same-origin tarball is allowed for registry root')\n+  })\n+\n   t.test('registry with different protocol should swap protocol', async (t) => {\n     const abbrevPackument4 = JSON.stringify({\n       _id: 'abbrev',\n",
+    "gate": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 844-862 overlap with diff-changed lines [847, 853, 855, 856, 857] in 'workspaces/arborist/lib/arborist/reify.js'."
+      },
+      "consistency": {
+        "pass": true,
+        "reason": "consistency_check (tree-sitter, lang=javascript): description keywords match diff symbols. Exact overlaps: ['allowremote', 'arborist', 'dependencies', 'hostname', 'node']. Partial: ['allowremotenone\u2248allowremote', 'allowremote\u2248allowremote', 'allow\u2248allowremote']."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check: stub pass for Python sample 'samples\\live_npm_cli_9473.diff'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      },
+      "blind_spot": {
+        "pass": true,
+        "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+      },
+      "invisible_unicode": {
+        "pass": true,
+        "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+      }
+    },
+    "verdict": {
+      "verdict": "needs-review",
+      "checks": {
+        "coverage": {
+          "pass": true,
+          "reason": "coverage_check: claimed lines 844-862 overlap with diff-changed lines [847, 853, 855, 856, 857] in 'workspaces/arborist/lib/arborist/reify.js'."
+        },
+        "consistency": {
+          "pass": true,
+          "reason": "consistency_check (tree-sitter, lang=javascript): description keywords match diff symbols. Exact overlaps: ['allowremote', 'arborist', 'dependencies', 'hostname', 'node']. Partial: ['allowremotenone\u2248allowremote', 'allowremote\u2248allowremote', 'allow\u2248allowremote']."
+        },
+        "test_exec": {
+          "pass": true,
+          "reason": "test_exec_check: stub pass for Python sample 'samples\\live_npm_cli_9473.diff'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+        },
+        "5w_evidence": {
+          "pass": true,
+          "reason": "All 5W fields were sufficiently answered by the LLM."
+        },
+        "proposer_escalation": {
+          "pass": false,
+          "reason": "Proposer self-reported a risk category (MISSING_VALIDATION). This is the Proposer's own claim, NOT independently verified by the Gate \u2014 routed to human review as a precaution, not a confirmed finding."
+        },
+        "blind_spot": {
+          "pass": true,
+          "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+        },
+        "invisible_unicode": {
+          "pass": true,
+          "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+        }
+      },
+      "failing_checks": [
+        "test_exec",
+        "proposer_escalation"
+      ],
+      "reasons": [
+        "test_exec_check: stub pass for Python sample 'samples\\live_npm_cli_9473.diff'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here.",
+        "Proposer self-reported a risk category (MISSING_VALIDATION). This is the Proposer's own claim, NOT independently verified by the Gate \u2014 routed to human review as a precaution, not a confirmed finding."
+      ]
+    },
+    "explanation": "The Gate issued a 'needs-review' verdict because the only grounded test execution was a stub for the provided Python sample (test_exec_check: stub pass for 'samples\\\\live_npm_cli_9473.diff', with real execution only for the protobuf Ruby sample), and the proposer self-reported a risk category of MISSING_VALIDATION, which was not independently verified and therefore required human review."
+  },
+  {
+    "sample_name": "live_protocolbuffers_protobuf_27848",
+    "run_timestamp": "2026-07-14T09:56:41.989710+00:00",
+    "elapsed_s": 6.39,
+    "pr_url": "https://github.com/protocolbuffers/protobuf/pull/27848",
+    "state": "CLOSED",
+    "pr_description": "Fix Ruby repeated enum const getter for unset fields. This fixes the Ruby native extension's repeated enum `_const` accessor when the field is unset.\n\n`METHOD_ENUM_GETTER` creates a Ruby array for repeated enum helpers, but it called `upb_Array_Size(msgval.array_val)` even when the repeated field was absent. In that case `upb_Message_GetFieldByDef()` returns a null array pointer.\n\nThe fix returns the newly-created empty Ruby array when `msgval.array_val` is null. Regression coverage checks both constructed and wire-decoded unset repeated enum messages.\n\nValidation:\n\n- `ruby -Ilib -Itests tests/basic.rb --name=test_enum_getter`\n- GitHub CI is passing for the Ruby matrix and blocking checks.\n\n`rake test` was also run locally; it built and ran the Ruby suite but reported one baseline-reproduced failure in `RepeatedFieldTest#test_sort_by!`, outside this enum getter path.",
+    "claim": {
+      "bug_type": "NULL_DEREF",
+      "file": "ruby/ext/google/protobuf_c/message.c",
+      "line_range": "401-409",
+      "description": "In Message_field_accessor, when handling repeated fields, it now returns the newly-created empty Ruby array if msgval.array_val is NULL instead of calling upb_Array_Size on it.",
+      "confidence": 0.9,
+      "w_what": "Added a NULL check in Message_field_accessor for repeated fields: after creating VALUE arr = rb_ary_new(), it returns arr immediately when msgval.array_val == NULL.",
+      "w_why": "To prevent calling upb_Array_Size(msgval.array_val) when the repeated field is absent and upb_MessageValue.array_val is NULL.",
+      "w_impact": "If wrong or incomplete, repeated enum const getter for unset repeated fields could still crash (e.g., NULL dereference) or return incorrect values instead of an empty array.",
+      "w_evidence": "Exact diff line: `if (msgval.array_val == NULL) {\n+          return arr;\n+        }`",
+      "w_who": "A Ruby caller accessing the repeated enum const getter on an unset repeated enum field triggers this path via Message_field_accessor; the diff\u2019s test triggers it with `m = proto_module::Enumer.new` and `proto_module::Enumer.decode(\"\".b).repeated_enum_const`."
+    },
+    "diff_text": "diff --git a/ruby/ext/google/protobuf_c/message.c b/ruby/ext/google/protobuf_c/message.c\nindex 39a6fdec4beb4..2273e95f7ad83 100644\n--- a/ruby/ext/google/protobuf_c/message.c\n+++ b/ruby/ext/google/protobuf_c/message.c\n@@ -401,6 +401,9 @@ static VALUE Message_field_accessor(VALUE _self, const upb_FieldDef* f,\n       if (upb_FieldDef_IsRepeated(f)) {\n         // Map repeated fields to a new type with ints\n         VALUE arr = rb_ary_new();\n+        if (msgval.array_val == NULL) {\n+          return arr;\n+        }\n         size_t i, n = upb_Array_Size(msgval.array_val);\n         for (i = 0; i < n; i++) {\n           upb_MessageValue elem = upb_Array_Get(msgval.array_val, i);\ndiff --git a/ruby/tests/common_tests.rb b/ruby/tests/common_tests.rb\nindex 4e65c1f075927..40e80d644000d 100644\n--- a/ruby/tests/common_tests.rb\n+++ b/ruby/tests/common_tests.rb\n@@ -783,6 +783,10 @@ def test_enum_getter\n     assert_equal [:A, :C], m.repeated_enum\n     assert_equal [1, 3], m.repeated_enum_const\n     assert_equal [proto_module::TestEnum::A, proto_module::TestEnum::C], m.repeated_enum_const\n+\n+    m = proto_module::Enumer.new\n+    assert_equal [], m.repeated_enum_const\n+    assert_equal [], proto_module::Enumer.decode(\"\".b).repeated_enum_const\n   end\n \n   def test_enum_getter_oneof\n",
+    "gate": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 401-409 overlap with diff-changed lines [404, 405, 406] in 'ruby/ext/google/protobuf_c/message.c'."
+      },
+      "consistency": {
+        "pass": true,
+        "reason": "consistency_check (tree-sitter, lang=c): description keywords match diff symbols. Exact overlaps: []. Partial: ['array\u2248array_val', 'msgvalarray\u2248msgval', 'sizemsgvalarray\u2248msgval']."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check: stub pass for Python sample 'samples\\live_protocolbuffers_protobuf_27848.diff'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      },
+      "blind_spot": {
+        "pass": true,
+        "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+      },
+      "invisible_unicode": {
+        "pass": true,
+        "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+      }
+    },
+    "verdict": {
+      "verdict": "needs-review",
+      "checks": {
+        "coverage": {
+          "pass": true,
+          "reason": "coverage_check: claimed lines 401-409 overlap with diff-changed lines [404, 405, 406] in 'ruby/ext/google/protobuf_c/message.c'."
+        },
+        "consistency": {
+          "pass": true,
+          "reason": "consistency_check (tree-sitter, lang=c): description keywords match diff symbols. Exact overlaps: []. Partial: ['array\u2248array_val', 'msgvalarray\u2248msgval', 'sizemsgvalarray\u2248msgval']."
+        },
+        "test_exec": {
+          "pass": true,
+          "reason": "test_exec_check: stub pass for Python sample 'samples\\live_protocolbuffers_protobuf_27848.diff'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+        },
+        "5w_evidence": {
+          "pass": true,
+          "reason": "All 5W fields were sufficiently answered by the LLM."
+        },
+        "proposer_escalation": {
+          "pass": true,
+          "reason": "No vulnerability detected by Proposer."
+        },
+        "blind_spot": {
+          "pass": true,
+          "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+        },
+        "invisible_unicode": {
+          "pass": true,
+          "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+        }
+      },
+      "failing_checks": [
+        "test_exec"
+      ],
+      "reasons": [
+        "test_exec_check: stub pass for Python sample 'samples\\live_protocolbuffers_protobuf_27848.diff'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      ]
+    },
+    "explanation": "The PR received a 'needs-review' verdict because the only active grounding mechanism was coverage and consistency (with test_exec only stub-passing for the Python sample and real execution implemented only for the protobuf Ruby sample), so the change described in Message_field_accessor for repeated fields returning an empty Ruby array when msgval.array_val is NULL was not validated by the available test execution."
+  },
+  {
+    "sample_name": "live_protocolbuffers_protobuf_27852",
+    "run_timestamp": "2026-07-14T09:56:48.313849+00:00",
+    "elapsed_s": 7.16,
+    "pr_url": "https://github.com/protocolbuffers/protobuf/pull/27852",
+    "state": "OPEN",
+    "pr_description": "Harden PHP repeated field indexing and namespace option validation. This PR adds defensive validation to two PHP code paths where malformed input can otherwise reach native runtime or generated-code boundaries.\n\nFirst, the native PHP `RepeatedField::offsetSet()` path now explicitly rejects negative and out-of-range indexes before converting the assigned value and before casting the index for `upb_Array_Set()`. This makes `offsetSet()` consistent with the other `ArrayAccess` methods and prevents invalid user-provided indexes from reaching the native repeated-field setter path.\n\nSecond, the PHP generator now validates `php_namespace` and `php_metadata_namespace` before using those options to derive PHP namespaces and generated filenames. This prevents malformed schema options from being emitted into generated PHP namespace/file output. Existing valid forms remain accepted, including empty options, normal namespace segments such as `Php\\\\Test`, and the existing `php_metadata_namespace = \"\\\\\"` root metadata special case.\n\nTests run:\n- `bazel test //src/google/protobuf/compiler/php:generator_unittest`\n- `bazel build //php:extension`\n- `bazel test //php:conformance_test_c`\n- `bazel test //php:conformance_test`\n- `bazel test //php:proto_staleness_test`\n- `bazel test //php:test_amalgamation_staleness`",
+    "claim": {
+      "bug_type": "MISSING_VALIDATION",
+      "file": "php/ext/google/protobuf/array.c",
+      "line_range": "348-366",
+      "description": "RepeatedField::offsetSet now rejects negative and out-of-range indexes before converting the value and ensures the index is cast to size_t only after bounds checks.",
+      "confidence": 0.9,
+      "w_what": "Added a bounds check `if (index < 0 || (size_t)index > size)` that errors and returns; removed the later `if (index > size)` branch and changed the setter call to `upb_Array_Set(..., (size_t)index, ...)` after handling the append case.",
+      "w_why": "To prevent malformed user-provided indexes (negative or > size) from reaching the native repeated-field setter path (`upb_Array_Set`) via an unsafe cast or unchecked index value.",
+      "w_impact": "If wrong/incomplete, invalid indexes could still reach `upb_Array_Set` (or valid boundary indexes could be rejected), causing incorrect behavior or potential native runtime issues.",
+      "w_evidence": "Added line: `if (index < 0 || (size_t)index > size) { zend_error(E_USER_ERROR, \"Element at index %ld doesn't exist.\\n\", index); return; }` and changed line: `upb_Array_Set(intern->array, (size_t)index, msgval);`",
+      "w_who": "A PHP caller invoking `RepeatedField::offsetSet($offset, $value)` with an offset that is negative or greater than the current repeated-field size would trigger the previous unsafe path; the diff shows the check is in that method."
+    },
+    "diff_text": "diff --git a/php/ext/google/protobuf/array.c b/php/ext/google/protobuf/array.c\nindex 0b37c47063543..661c0ac06aa3c 100644\n--- a/php/ext/google/protobuf/array.c\n+++ b/php/ext/google/protobuf/array.c\n@@ -348,16 +348,19 @@ PHP_METHOD(RepeatedField, offsetSet) {\n     return;\n   }\n \n+  if (index < 0 || (size_t)index > size) {\n+    zend_error(E_USER_ERROR, \"Element at index %ld doesn't exist.\\n\", index);\n+    return;\n+  }\n+\n   if (!Convert_PhpToUpb(val, &msgval, intern->type, arena)) {\n     return;\n   }\n \n-  if (index > size) {\n-    zend_error(E_USER_ERROR, \"Element at index %ld doesn't exist.\\n\", index);\n-  } else if (index == size) {\n+  if ((size_t)index == size) {\n     upb_Array_Append(intern->array, msgval, Arena_Get(&intern->arena));\n   } else {\n-    upb_Array_Set(intern->array, index, msgval);\n+    upb_Array_Set(intern->array, (size_t)index, msgval);\n   }\n }\n \ndiff --git a/src/google/protobuf/compiler/php/generator_unittest.cc b/src/google/protobuf/compiler/php/generator_unittest.cc\nindex 79d4b10faaeaf..0651e24d187d7 100644\n--- a/src/google/protobuf/compiler/php/generator_unittest.cc\n+++ b/src/google/protobuf/compiler/php/generator_unittest.cc\n@@ -5,12 +5,13 @@\n // license that can be found in the LICENSE file or at\n // https://developers.google.com/open-source/licenses/bsd\n \n+#include <gtest/gtest.h>\n+\n #include <memory>\n \n-#include \"google/protobuf/descriptor.pb.h\"\n-#include <gtest/gtest.h>\n #include \"google/protobuf/compiler/command_line_interface_tester.h\"\n #include \"google/protobuf/compiler/php/php_generator.h\"\n+#include \"google/protobuf/descriptor.pb.h\"\n \n namespace google {\n namespace protobuf {\n@@ -105,6 +106,68 @@ TEST_F(PhpGeneratorTest, ClosedEnumError) {\n   ExpectErrorSubstring(\"Can't generate PHP code for closed enum Foo\");\n }\n \n+TEST_F(PhpGeneratorTest, InvalidPhpNamespaceError) {\n+  CreateTempFile(\"foo.proto\",\n+                 R\"schema(\n+    syntax = \"proto3\";\n+    option php_namespace = \"Foo\\\\Bad-Name\";\n+    message Foo {\n+      int32 bar = 1;\n+    })schema\");\n+\n+  RunProtoc(\n+      \"protocol_compiler --proto_path=$tmpdir --php_out=$tmpdir foo.proto\");\n+\n+  ExpectErrorSubstring(\"Invalid php_namespace option\");\n+}\n+\n+TEST_F(PhpGeneratorTest, InvalidPhpMetadataNamespaceError) {\n+  CreateTempFile(\"foo.proto\",\n+                 R\"schema(\n+    syntax = \"proto3\";\n+    option php_metadata_namespace = \"GPBMetadata/Foo\";\n+    message Foo {\n+      int32 bar = 1;\n+    })schema\");\n+\n+  RunProtoc(\n+      \"protocol_compiler --proto_path=$tmpdir --php_out=$tmpdir foo.proto\");\n+\n+  ExpectErrorSubstring(\"Invalid php_metadata_namespace option\");\n+}\n+\n+TEST_F(PhpGeneratorTest, PhpMetadataRootNamespaceAllowed) {\n+  CreateTempFile(\"root_metadata.proto\",\n+                 R\"schema(\n+    syntax = \"proto3\";\n+    option php_metadata_namespace = \"\\\\\";\n+    message Foo {\n+      int32 bar = 1;\n+    })schema\");\n+\n+  RunProtoc(\n+      \"protocol_compiler --proto_path=$tmpdir --php_out=$tmpdir \"\n+      \"root_metadata.proto\");\n+\n+  ExpectNoErrors();\n+}\n+\n+TEST_F(PhpGeneratorTest, PhpNamespaceOptionsAllowed) {\n+  CreateTempFile(\"foo.proto\",\n+                 R\"schema(\n+    syntax = \"proto3\";\n+    option php_namespace = \"Php\\\\Test\";\n+    option php_metadata_namespace = \"Metadata\\\\Php\\\\Test\";\n+    message Foo {\n+      int32 bar = 1;\n+    })schema\");\n+\n+  RunProtoc(\n+      \"protocol_compiler --proto_path=$tmpdir --php_out=$tmpdir foo.proto\");\n+\n+  ExpectNoErrors();\n+}\n+\n TEST_F(PhpGeneratorTest, ImportPublic) {\n   CreateTempFile(\"common.proto\",\n                  R\"schema(\ndiff --git a/src/google/protobuf/compiler/php/php_generator.cc b/src/google/protobuf/compiler/php/php_generator.cc\nindex a6cd8d4b5d760..efde95fe4f4b5 100644\n--- a/src/google/protobuf/compiler/php/php_generator.cc\n+++ b/src/google/protobuf/compiler/php/php_generator.cc\n@@ -124,6 +124,76 @@ std::string ConstantNamePrefix(absl::string_view classname) {\n   return \"\";\n }\n \n+bool IsPhpIdentifierStart(char c) { return absl::ascii_isalpha(c) || c == '_'; }\n+\n+bool IsPhpIdentifierPart(char c) { return absl::ascii_isalnum(c) || c == '_'; }\n+\n+bool IsValidPhpNamespace(absl::string_view name, bool allow_root_namespace) {\n+  if (name.empty()) {\n+    return true;\n+  }\n+  if (allow_root_namespace && name == \"\\\\\") {\n+    return true;\n+  }\n+\n+  bool segment_start = true;\n+  for (char c : name) {\n+    if (c == '\\\\') {\n+      if (segment_start) {\n+        return false;\n+      }\n+      segment_start = true;\n+      continue;\n+    }\n+    if (segment_start) {\n+      if (!IsPhpIdentifierStart(c)) {\n+        return false;\n+      }\n+      segment_start = false;\n+      continue;\n+    }\n+    if (!IsPhpIdentifierPart(c)) {\n+      return false;\n+    }\n+  }\n+\n+  return !segment_start;\n+}\n+\n+bool ValidatePhpNamespaceOption(const FileDescriptor* file,\n+                                absl::string_view option_name,\n+                                absl::string_view option_value,\n+                                bool allow_root_namespace, std::string* error) {\n+  if (IsValidPhpNamespace(option_value, allow_root_namespace)) {\n+    return true;\n+  }\n+\n+  *error =\n+      absl::StrCat(\"Invalid \", option_name, \" option \\\"\",\n+                   absl::CEscape(option_value), \"\\\" in file \", file->name(),\n+                   \": expected PHP identifiers separated by \"\n+                   \"backslashes.\\n\");\n+  return false;\n+}\n+\n+bool ValidatePhpOptions(const FileDescriptor* file, std::string* error) {\n+  if (file->options().has_php_namespace() &&\n+      !ValidatePhpNamespaceOption(file, \"php_namespace\",\n+                                  file->options().php_namespace(), false,\n+                                  error)) {\n+    return false;\n+  }\n+\n+  if (file->options().has_php_metadata_namespace() &&\n+      !ValidatePhpNamespaceOption(file, \"php_metadata_namespace\",\n+                                  file->options().php_metadata_namespace(),\n+                                  true, error)) {\n+    return false;\n+  }\n+\n+  return true;\n+}\n+\n template <typename DescriptorType>\n std::string RootPhpNamespace(const DescriptorType* desc,\n                              const Options& options) {\n@@ -2212,6 +2282,9 @@ bool Generator::Generate(const FileDescriptor* file, const Options& options,\n         \"Can only generate PHP code for google/protobuf/descriptor.proto.\\n\";\n     return false;\n   }\n+  if (!ValidatePhpOptions(file, error)) {\n+    return false;\n+  }\n \n   return GenerateFile(file, options, generator_context, error);\n }\n",
+    "gate": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 348-366 overlap with diff-changed lines [351, 352, 353, 354, 355] in 'php/ext/google/protobuf/array.c'."
+      },
+      "consistency": {
+        "pass": true,
+        "reason": "consistency_check (tree-sitter, lang=c): description keywords match diff symbols. Exact overlaps: ['array', 'index']. Partial: ['array\u2248array', 'array\u2248upb_array_set', 'indexes\u2248index']."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check: stub pass for Python sample 'samples\\live_protocolbuffers_protobuf_27852.diff'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      },
+      "blind_spot": {
+        "pass": true,
+        "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+      },
+      "invisible_unicode": {
+        "pass": true,
+        "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+      }
+    },
+    "verdict": {
+      "verdict": "needs-review",
+      "checks": {
+        "coverage": {
+          "pass": true,
+          "reason": "coverage_check: claimed lines 348-366 overlap with diff-changed lines [351, 352, 353, 354, 355] in 'php/ext/google/protobuf/array.c'."
+        },
+        "consistency": {
+          "pass": true,
+          "reason": "consistency_check (tree-sitter, lang=c): description keywords match diff symbols. Exact overlaps: ['array', 'index']. Partial: ['array\u2248array', 'array\u2248upb_array_set', 'indexes\u2248index']."
+        },
+        "test_exec": {
+          "pass": true,
+          "reason": "test_exec_check: stub pass for Python sample 'samples\\live_protocolbuffers_protobuf_27852.diff'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+        },
+        "5w_evidence": {
+          "pass": true,
+          "reason": "All 5W fields were sufficiently answered by the LLM."
+        },
+        "proposer_escalation": {
+          "pass": true,
+          "reason": "No vulnerability detected by Proposer."
+        },
+        "blind_spot": {
+          "pass": true,
+          "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+        },
+        "invisible_unicode": {
+          "pass": true,
+          "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+        }
+      },
+      "failing_checks": [
+        "test_exec"
+      ],
+      "reasons": [
+        "test_exec_check: stub pass for Python sample 'samples\\live_protocolbuffers_protobuf_27852.diff'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      ]
+    },
+    "explanation": "The Gate issued a 'needs-review' verdict because the only active grounding mechanism (test_exec) did not actually execute the Python sample mentioned in the claim, with test_exec_check reporting a stub pass for 'samples\\live_protocolbuffers_protobuf_27852.diff' and real test execution implemented only for the protobuf Ruby sample (#5)."
+  },
+  {
+    "sample_name": "live_tensorflow_tensorflow_120484",
+    "run_timestamp": "2026-07-14T09:55:52.152888+00:00",
+    "elapsed_s": 9.72,
+    "pr_url": "https://github.com/tensorflow/tensorflow/pull/120484",
+    "state": "OPEN",
+    "pr_description": "[TFLite] Validate MaxUnpooling2D indices before output writes. ## Summary\n\n- Validate `MaxUnpooling2D` runtime index values before using them as output offsets.\n- Return `kTfLiteError` when an index is negative or outside the current output batch slice.\n- Add a regression test covering invalid lower/upper index values.\n\n## Why\n\n`MaxUnpooling2D` currently reads `indices_data[input_offset]` and uses it directly in:\n\n```cc\noutput_data[batch * batch_stride + idx]\n```\n\nWithout validating `idx`, invalid runtime indices can target memory outside the intended output batch slice. That creates a potential out-of-bounds write / memory corruption condition. This patch rejects invalid indices before the output write is performed.\n\n## Scope\n\nThis is intentionally limited to the index-validation issue. Broader pointer checks, integer-overflow hardening, and other adjacent robustness topics discussed in the superseded PR #120468 are not bundled here and should be handled separately if maintainers want those follow-ups.\n\n## Tests\n\n```text\nbazel test //tensorflow/lite/kernels/perception:perception_ops_test --test_filter=MaxUnpoolingOpTest.InvalidIndexReturnsError --test_output=errors\nbazel test //tensorflow/lite/kernels/perception:perception_ops_test --test_output=errors\n```",
+    "claim": {
+      "bug_type": "MISSING_VALIDATION",
+      "file": "tensorflow/lite/kernels/perception/max_unpooling_2d.cc",
+      "line_range": "33-74, 115-133",
+      "description": "The MaxUnpooling helper now validates every runtime index from indices_data against [0, batch_stride) using TF_LITE_ENSURE_MSG and returns kTfLiteOk, and Eval propagates the status from MaxUnpooling.",
+      "confidence": 0.9,
+      "w_what": "In max_unpooling_2d.cc, MaxUnpooling was changed from inline void to inline TfLiteStatus, it now loops over input_shape.FlatSize() and checks each indices_data[i] is >= 0 and < batch_stride via TF_LITE_ENSURE_MSG(context, ...), then returns kTfLiteOk; Eval was changed to return MaxUnpooling(...) instead of always returning kTfLiteOk.",
+      "w_why": "To prevent invalid runtime indices (negative or outside the computed output batch slice range) from being used as output offsets during unpooling, which would otherwise cause out-of-bounds writes to output_data.",
+      "w_impact": "If the validation is wrong or incomplete, it could either (a) still allow out-of-bounds writes (if the bounds check does not match the actual indexing math) or (b) incorrectly reject valid models/inputs (returning an error for indices that should be accepted).",
+      "w_evidence": "Evidence for the structural change: `TF_LITE_ENSURE_MSG(context, idx >= 0 && idx < batch_stride, \"Invalid MaxUnpooling2D index.\");` and the signature/return propagation: `inline TfLiteStatus MaxUnpooling(...` plus `return MaxUnpooling(context, ...);`",
+      "w_who": "A concrete trigger is any invocation of this op where the indices input tensor contains a value < 0 or >= batch_stride; the added test constructs such a case by setting indices to `{-1, 8}` for an input/shape configuration with output batch_stride computed from output_shape dims."
+    },
+    "diff_text": "diff --git a/tensorflow/lite/kernels/perception/max_unpooling_2d.cc b/tensorflow/lite/kernels/perception/max_unpooling_2d.cc\nindex 7c99c1c72a69b9..db9b1d9eac54a5 100644\n--- a/tensorflow/lite/kernels/perception/max_unpooling_2d.cc\n+++ b/tensorflow/lite/kernels/perception/max_unpooling_2d.cc\n@@ -33,14 +33,24 @@ constexpr int kOutputTensor = 0;\n \n // TODO(b/175003241): Move this logic to lite/kernels/internal when promoting\n // this op to a builtin op.\n-inline void MaxUnpooling(const RuntimeShape& input_shape,\n-                         const float* input_data, const int32_t* indices_data,\n-                         const RuntimeShape& output_shape, float* output_data) {\n+inline TfLiteStatus MaxUnpooling(TfLiteContext* context,\n+                                 const RuntimeShape& input_shape,\n+                                 const float* input_data,\n+                                 const int32_t* indices_data,\n+                                 const RuntimeShape& output_shape,\n+                                 float* output_data) {\n   std::memset(output_data, 0, output_shape.FlatSize() * sizeof(float));\n   const int batches = MatchingDim(input_shape, 0, output_shape, 0);\n   const int depth = MatchingDim(input_shape, 3, output_shape, 3);\n   const int batch_stride =\n       output_shape.Dims(1) * output_shape.Dims(2) * output_shape.Dims(3);\n+  const int input_count = input_shape.FlatSize();\n+  for (int i = 0; i < input_count; ++i) {\n+    const int32_t idx = indices_data[i];\n+    TF_LITE_ENSURE_MSG(context, idx >= 0 && idx < batch_stride,\n+                       \"Invalid MaxUnpooling2D index.\");\n+  }\n+\n   for (int batch = 0; batch < batches; ++batch) {\n     for (int in_y = 0; in_y < input_shape.Dims(1); ++in_y) {\n       for (int in_x = 0; in_x < input_shape.Dims(2); ++in_x) {\n@@ -53,6 +63,7 @@ inline void MaxUnpooling(const RuntimeShape& input_shape,\n       }\n     }\n   }\n+  return kTfLiteOk;\n }\n \n TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {\n@@ -115,10 +126,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {\n   const TfLiteTensor* indices = GetInput(context, node, kIndicesTensor);\n   TF_LITE_ENSURE(context, indices != nullptr);\n \n-  MaxUnpooling(GetTensorShape(input), GetTensorData<float>(input),\n-               GetTensorData<int32_t>(indices), GetTensorShape(output),\n-               GetTensorData<float>(output));\n-  return kTfLiteOk;\n+  return MaxUnpooling(context, GetTensorShape(input),\n+                      GetTensorData<float>(input),\n+                      GetTensorData<int32_t>(indices), GetTensorShape(output),\n+                      GetTensorData<float>(output));\n }\n \n }  // namespace max_unpooling_2d\ndiff --git a/tensorflow/lite/kernels/perception/max_unpooling_2d_test.cc b/tensorflow/lite/kernels/perception/max_unpooling_2d_test.cc\nindex 784a3f4127a814..6e1dac8051d352 100644\n--- a/tensorflow/lite/kernels/perception/max_unpooling_2d_test.cc\n+++ b/tensorflow/lite/kernels/perception/max_unpooling_2d_test.cc\n@@ -96,6 +96,20 @@ TEST(MaxUnpoolingOpTest, SimpleTest) {\n   EXPECT_THAT(model.GetOutput(), ElementsAreArray({0, 13, 0, 0, 0, 0, 4, 0}));\n }\n \n+TEST(MaxUnpoolingOpTest, InvalidIndexReturnsError) {\n+  MaxUnpoolingOpModel model(\n+      /*input=*/{TensorType_FLOAT32, {1, 1, 2, 1}},\n+      /*indices=*/{TensorType_INT32, {1, 1, 2, 1}},\n+      /*stride_height=*/2, /*stride_width=*/2,\n+      /*filter_height=*/2, /*filter_width=*/2,\n+      /*padding=*/kTfLitePaddingSame,\n+      /*output=*/{TensorType_FLOAT32, {}});\n+  model.SetInput({13, 4});\n+  model.SetIndices({-1, 8});\n+\n+  EXPECT_NE(model.Invoke(), kTfLiteOk);\n+}\n+\n TEST(MaxUnpoolingOpTest, Strides2x1Test) {\n   constexpr int kInputB = 1;\n   constexpr int kInputH = 2;\n",
+    "gate": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: no line range claimed and diff adds lines in 'tensorflow/lite/kernels/perception/max_unpooling_2d.cc' \u2014 structural pass (no test runner available)."
+      },
+      "consistency": {
+        "pass": true,
+        "reason": "consistency_check (tree-sitter, lang=cpp): description keywords match diff symbols. Exact overlaps: ['idx', 'indices', 'output']. Partial: ['batch\u2248batch_stride', 'datainput\u2248input', 'indices\u2248indices']."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check: stub pass for Python sample 'samples\\live_tensorflow_tensorflow_120484.diff'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      },
+      "blind_spot": {
+        "pass": true,
+        "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+      },
+      "invisible_unicode": {
+        "pass": true,
+        "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+      }
+    },
+    "verdict": {
+      "verdict": "needs-review",
+      "checks": {
+        "coverage": {
+          "pass": true,
+          "reason": "coverage_check: no line range claimed and diff adds lines in 'tensorflow/lite/kernels/perception/max_unpooling_2d.cc' \u2014 structural pass (no test runner available)."
+        },
+        "consistency": {
+          "pass": true,
+          "reason": "consistency_check (tree-sitter, lang=cpp): description keywords match diff symbols. Exact overlaps: ['idx', 'indices', 'output']. Partial: ['batch\u2248batch_stride', 'datainput\u2248input', 'indices\u2248indices']."
+        },
+        "test_exec": {
+          "pass": true,
+          "reason": "test_exec_check: stub pass for Python sample 'samples\\live_tensorflow_tensorflow_120484.diff'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+        },
+        "5w_evidence": {
+          "pass": true,
+          "reason": "All 5W fields were sufficiently answered by the LLM."
+        },
+        "proposer_escalation": {
+          "pass": false,
+          "reason": "Proposer self-reported a risk category (MISSING_VALIDATION). This is the Proposer's own claim, NOT independently verified by the Gate \u2014 routed to human review as a precaution, not a confirmed finding."
+        },
+        "blind_spot": {
+          "pass": true,
+          "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+        },
+        "invisible_unicode": {
+          "pass": true,
+          "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+        }
+      },
+      "failing_checks": [
+        "test_exec",
+        "proposer_escalation"
+      ],
+      "reasons": [
+        "test_exec_check: stub pass for Python sample 'samples\\live_tensorflow_tensorflow_120484.diff'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here.",
+        "Proposer self-reported a risk category (MISSING_VALIDATION). This is the Proposer's own claim, NOT independently verified by the Gate \u2014 routed to human review as a precaution, not a confirmed finding."
+      ]
+    },
+    "explanation": "The Gate issued a 'needs-review' verdict because the only active grounding mechanism for test execution is a stub pass for the Python sample 'samples\\live_tensorflow_tensorflow_120484.diff' (with real execution implemented only for the protobuf Ruby sample #5), and the proposer self-reported a risk category of MISSING_VALIDATION, which was not independently verified and therefore routed to human review."
+  },
+  {
+    "sample_name": "requests_7520",
+    "run_timestamp": "2026-07-14T10:08:16.785957+00:00",
+    "elapsed_s": 9.96,
+    "pr_url": "https://github.com/psf/requests/pull/7520",
+    "state": "OPEN",
+    "pr_description": "Keep Link header parameter values that contain '='\n\n## Summary\n\n`parse_header_links` splits each `Link` header parameter on `=` with\n`key, value = param.split(\"=\")` (no `maxsplit`). RFC 8288 permits quoted\nparameter **values** that themselves contain `=` (pagination/cursor tokens,\nbase64 values, signed URLs, etc.). Such a value produces 3+ parts and raises\n`ValueError: too many values to unpack`, which the bare `except ValueError:\nbreak` swallows \u2014 silently dropping that parameter **and every parameter after\nit** in the link.\n\n```python\n>>> import requests\n>>> r = requests.Response()\n>>> r.headers[\"Link\"] = '<https://api.example.com/items>; rel=\"next\"; title=\"a=b\"'\n>>> r.links\n{'next': {'url': 'https://api.example.com/items', 'rel': 'next'}}   # 'title' lost\n```\n\n## Fix\n\n`param.split(\"=\")` \u2192 `param.split(\"=\", 1)` in `parse_header_links`, so the value\nkeeps its `=` and following parameters are preserved.\n\n## Tests\n\nAdded a `test_parse_header_links` parametrization with a value containing `=`\n(`title=\"a=b\"` followed by `rel=\"next\"`). It fails on `main` (both `title` and\nthe trailing `rel` are dropped) and passes with the fix. `tests/test_utils.py::test_parse_header_links`\nis green (6 passed); `ruff check`/`ruff format` clean.\n\nNo existing issue tracked this; the bug is long-standing.\n",
+    "claim": {
+      "bug_type": "MISSING_VALIDATION",
+      "file": "src/requests/utils.py",
+      "line_range": "988-988",
+      "description": "In parse_header_links, the code changes splitting of each Link parameter from param.split(\"=\") to param.split(\"=\", 1) so only the first '=' is treated as the key/value separator.",
+      "confidence": 0.9,
+      "w_what": "Changed `key, value = param.split(\"=\")` to `key, value = param.split(\"=\", 1)` inside `parse_header_links`.",
+      "w_why": "To prevent a Link parameter whose value contains '=' from producing more than two split parts and triggering the ValueError handler that breaks out of parsing.",
+      "w_impact": "If wrong or incomplete, Link headers containing '=' inside quoted parameter values could still be parsed incorrectly, potentially causing parameters after the offending one to be dropped due to the `except ValueError: break` behavior.",
+      "w_evidence": "Diff line: `key, value = param.split(\"=\", 1)` (replacing `key, value = param.split(\"=\")`).",
+      "w_who": "A caller parsing an HTTP Link header via `parse_header_links` where a parameter value contains '=' (e.g., `title=\"a=b\"; rel=\"next\"`) would trigger the failure mode if unfixed."
+    },
+    "diff_text": "diff --git a/src/requests/utils.py b/src/requests/utils.py\nindex fff6edf4be..4439dfe989 100644\n--- a/src/requests/utils.py\n+++ b/src/requests/utils.py\n@@ -988,7 +988,7 @@ def parse_header_links(value: str) -> list[dict[str, str]]:\n \n         for param in params.split(\";\"):\n             try:\n-                key, value = param.split(\"=\")\n+                key, value = param.split(\"=\", 1)\n             except ValueError:\n                 break\n \ndiff --git a/tests/test_utils.py b/tests/test_utils.py\nindex 091a9fd6f3..9bc5843f02 100644\n--- a/tests/test_utils.py\n+++ b/tests/test_utils.py\n@@ -690,6 +690,12 @@ def test_iter_slices(value, length):\n                 {\"url\": \"http://.../back.jpeg\"},\n             ],\n         ),\n+        (\n+            # A quoted parameter value may itself contain \"=\" (RFC 8288);\n+            # it must be kept and must not drop the parameters after it.\n+            '<http:/.../front.jpeg>; title=\"a=b\"; rel=\"next\"',\n+            [{\"url\": \"http:/.../front.jpeg\", \"title\": \"a=b\", \"rel\": \"next\"}],\n+        ),\n         (\"\", []),\n     ),\n )\n",
+    "gate": {
+      "coverage": {
+        "pass": false,
+        "reason": "coverage_check: claimed lines 988-988 in 'src/requests/utils.py' do NOT appear in the diff. Changed lines: [991]. Tests may be padding/irrelevant."
+      },
+      "consistency": {
+        "pass": true,
+        "reason": "consistency_check (tree-sitter, lang=python): description keywords match diff symbols. Exact overlaps: ['key']. Partial: ['maxsplit\u2248split', 'paramsplit\u2248split', 'splits\u2248split']."
+      },
+      "test_exec": {
+        "pass": false,
+        "reason": "test_exec_check [ADOPTED]: applied the PR diff locally and the pinned repo test command failed. cmd='C:\\\\Users\\\\abhin\\\\Projects\\\\codex-hackathon\\\\.venv\\\\Scripts\\\\python.exe -m pytest tests/test_utils.py::test_parse_header_links'; exit_code=1; output============================== test session starts =============================\nplatform win32 -- Python 3.14.4, pytest-9.1.1, pluggy-1.6.0\nrootdir: C:\\tmp\\prgg_repos\\requests\nconfigfile: pyproject.toml\nplugins: anyio-4.14.2\ncollected 6 items\n\ntests\\test_utils.py ....F.                                               [100%]\n\n================================== FAILURES ===================================\n_ test_parse_header_links[<http:/.../front.jpeg>; title=\"a=b\"; rel=\"next\"-expected4] _\n\nvalue ="
+      },
+      "blind_spot": {
+        "pass": true,
+        "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+      },
+      "invisible_unicode": {
+        "pass": true,
+        "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+      }
+    },
+    "verdict": {
+      "verdict": "ungrounded",
+      "checks": {
+        "coverage": {
+          "pass": false,
+          "reason": "coverage_check: claimed lines 988-988 in 'src/requests/utils.py' do NOT appear in the diff. Changed lines: [991]. Tests may be padding/irrelevant."
+        },
+        "consistency": {
+          "pass": true,
+          "reason": "consistency_check (tree-sitter, lang=python): description keywords match diff symbols. Exact overlaps: ['key']. Partial: ['maxsplit\u2248split', 'paramsplit\u2248split', 'splits\u2248split']."
+        },
+        "test_exec": {
+          "pass": false,
+          "reason": "test_exec_check [ADOPTED]: applied the PR diff locally and the pinned repo test command failed. cmd='C:\\\\Users\\\\abhin\\\\Projects\\\\codex-hackathon\\\\.venv\\\\Scripts\\\\python.exe -m pytest tests/test_utils.py::test_parse_header_links'; exit_code=1; output============================== test session starts =============================\nplatform win32 -- Python 3.14.4, pytest-9.1.1, pluggy-1.6.0\nrootdir: C:\\tmp\\prgg_repos\\requests\nconfigfile: pyproject.toml\nplugins: anyio-4.14.2\ncollected 6 items\n\ntests\\test_utils.py ....F.                                               [100%]\n\n================================== FAILURES ===================================\n_ test_parse_header_links[<http:/.../front.jpeg>; title=\"a=b\"; rel=\"next\"-expected4] _\n\nvalue ="
+        },
+        "5w_evidence": {
+          "pass": true,
+          "reason": "All 5W fields were sufficiently answered by the LLM."
+        },
+        "proposer_escalation": {
+          "pass": true,
+          "reason": "No vulnerability detected by Proposer."
+        },
+        "blind_spot": {
+          "pass": true,
+          "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+        },
+        "invisible_unicode": {
+          "pass": true,
+          "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+        }
+      },
+      "failing_checks": [
+        "coverage",
+        "test_exec"
+      ],
+      "reasons": [
+        "coverage_check: claimed lines 988-988 in 'src/requests/utils.py' do NOT appear in the diff. Changed lines: [991]. Tests may be padding/irrelevant.",
+        "test_exec_check [ADOPTED]: applied the PR diff locally and the pinned repo test command failed. cmd='C:\\\\Users\\\\abhin\\\\Projects\\\\codex-hackathon\\\\.venv\\\\Scripts\\\\python.exe -m pytest tests/test_utils.py::test_parse_header_links'; exit_code=1; output============================== test session starts =============================\nplatform win32 -- Python 3.14.4, pytest-9.1.1, pluggy-1.6.0\nrootdir: C:\\tmp\\prgg_repos\\requests\nconfigfile: pyproject.toml\nplugins: anyio-4.14.2\ncollected 6 items\n\ntests\\test_utils.py ....F.                                               [100%]\n\n================================== FAILURES ===================================\n_ test_parse_header_links[<http:/.../front.jpeg>; title=\"a=b\"; rel=\"next\"-expected4] _\n\nvalue ="
+      ]
+    },
+    "explanation": "The Gate marked the PR ungrounded because the coverage check found the claimed change in parse_header_links (line 988 in src/requests/utils.py) was not present in the diff and the adopted test run failed (test_exec_check: tests/test_utils.py::test_parse_header_links had a failure for the case with title=\"a=b\")."
+  },
+  {
+    "sample_name": "requests_7543",
+    "run_timestamp": "2026-07-14T09:24:55.270156+00:00",
+    "elapsed_s": 8.34,
+    "pr_url": "https://github.com/psf/requests/pull/7543",
+    "state": "OPEN",
+    "pr_description": "Add more URLs to project metadata (Changelog, Issues, Sponsor)\n\nIt would be nice if the PyPI page for `requests` listed the links for the changelog, the issues page, and the sponsoring page. This is useful not only for humans browsing PyPI, but for automated tools using the PyPI API like this:\r\n\r\n    curl https://pypi.org/pypi/requests/json | jq '.info.project_urls'\r\n\r\nThese URLs will be given special icons on the PyPI.org website. See https://docs.pypi.org/project_metadata/\r\n\r\nI'm writing a tool that automatically compiles a description of changes when upgrading dependencies, based on the changelogs of the dependencies. It looks at the project's metadata to find the URL of the changelog. This pull request adds the missing metadata that would be helpful for such a tool.",
+    "claim": {
+      "bug_type": "MISSING_METADATA",
+      "file": "pyproject.toml",
+      "line_range": "50-53",
+      "description": "Adds Changelog, Issues, and Sponsor URLs to the [project.urls] table in pyproject.toml.",
+      "confidence": 1.0,
+      "w_what": "Added three key-value pairs to the [project.urls] section: Changelog, Issues, and Sponsor.",
+      "w_why": "To provide metadata for PyPI, enabling better discoverability and automated tool integration for changelog tracking and project support.",
+      "w_impact": "If incorrect, PyPI users and automated tools will be directed to invalid or broken URLs for project resources.",
+      "w_evidence": "Changelog = \"https://requests.readthedocs.io/en/latest/community/updates/#release-history\"",
+      "w_who": "INSUFFICIENT EVIDENCE"
+    },
+    "diff_text": "diff --git a/pyproject.toml b/pyproject.toml\nindex e7a1e015e0..06d18464c5 100644\n--- a/pyproject.toml\n+++ b/pyproject.toml\n@@ -47,8 +47,11 @@ classifiers = [\n ]\n \n [project.urls]\n+Changelog = \"https://requests.readthedocs.io/en/latest/community/updates/#release-history\"\n Documentation = \"https://requests.readthedocs.io\"\n+Issues = \"https://github.com/psf/requests/issues\"\n Source = \"https://github.com/psf/requests\"\n+Sponsor = \"https://www.python.org/psf/sponsorship/\"\n \n [project.optional-dependencies]\n security = []\n",
+    "gate": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 50-53 overlap with diff-changed lines [50, 52] in 'pyproject.toml'."
+      },
+      "consistency": {
+        "pass": true,
+        "reason": "consistency_check (tree-sitter, lang=python): description keywords match diff symbols. Exact overlaps: ['changelog', 'issues', 'sponsor']. Partial: ['changelogs\u2248changelog', 'changelog\u2248changelog', 'httpsdocspypiorgproject\u2248https']."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check: stub pass for Python sample 'https://github.com/psf/requests/pull/7543'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      },
+      "blind_spot": {
+        "pass": true,
+        "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+      },
+      "invisible_unicode": {
+        "pass": true,
+        "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+      }
+    },
+    "verdict": {
+      "verdict": "needs-review",
+      "checks": {
+        "coverage": {
+          "pass": true,
+          "reason": "coverage_check: claimed lines 50-53 overlap with diff-changed lines [50, 52] in 'pyproject.toml'."
+        },
+        "consistency": {
+          "pass": true,
+          "reason": "consistency_check (tree-sitter, lang=python): description keywords match diff symbols. Exact overlaps: ['changelog', 'issues', 'sponsor']. Partial: ['changelogs\u2248changelog', 'changelog\u2248changelog', 'httpsdocspypiorgproject\u2248https']."
+        },
+        "test_exec": {
+          "pass": true,
+          "reason": "test_exec_check: stub pass for Python sample 'https://github.com/psf/requests/pull/7543'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+        },
+        "5w_evidence": {
+          "pass": false,
+          "reason": "Proposer found INSUFFICIENT EVIDENCE for: w_who."
+        },
+        "proposer_escalation": {
+          "pass": true,
+          "reason": "No vulnerability detected by Proposer."
+        },
+        "blind_spot": {
+          "pass": true,
+          "reason": "blind_spot_check: no unverifiable binary or image content in diff."
+        },
+        "invisible_unicode": {
+          "pass": true,
+          "reason": "invisible_unicode_check: no invisible Unicode detected in diff or description."
+        }
+      },
+      "failing_checks": [
+        "test_exec",
+        "5w_evidence"
+      ],
+      "reasons": [
+        "test_exec_check: stub pass for Python sample 'https://github.com/psf/requests/pull/7543'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here.",
+        "Proposer found INSUFFICIENT EVIDENCE for: w_who."
+      ]
+    },
+    "explanation": "The pull request requires further review because the proposer failed to provide sufficient evidence for the \"w_who\" requirement and the \"test_exec\" check is currently a stub that does not validate the claim regarding the updated pyproject.toml URLs."
+  }
+]

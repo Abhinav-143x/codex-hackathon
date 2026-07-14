@@ -1,0 +1,56 @@
+{
+  "sample_name": "2_padded_coverage",
+  "run_timestamp": "2026-07-12T14:59:20.675439+00:00",
+  "elapsed_s": 0.0,
+  "pr_description": "Fix session token validation: add guard for empty tokens and tokens shorter than 8 characters in validate_session_token(). This prevents invalid tokens from reaching the session store lookup.",
+  "claim": {
+    "bug_type": "OFFLINE_PARSED",
+    "file": "auth/session.py",
+    "line_range": "22-31",
+    "description": "offline mock claim for auth/session.py",
+    "confidence": 0.75,
+    "w_what": "Offline mock \u2014 check parsed from diff.",
+    "w_why": "Offline mode \u2014 no LLM call made.",
+    "w_impact": "Offline mode \u2014 no LLM call made.",
+    "w_evidence": "Diff file: auth/session.py, hunk range: 22-31",
+    "w_who": "Offline mode."
+  },
+  "gate": {
+    "coverage": {
+      "pass": true,
+      "reason": "coverage_check: claimed lines 22-31 overlap with diff-changed lines [25, 26, 27, 28] in 'auth/session.py'."
+    },
+    "consistency": {
+      "pass": false,
+      "reason": "consistency_check: description keywords ['authsessionpy', 'claim', 'from', 'mock', 'offline', 'parsed'] do NOT match diff symbols ['len', 'token'] in 'auth/session.py'. Overlap: []. The PR description may not match the actual diff (scope mismatch or wrong file)."
+    },
+    "test_exec": {
+      "pass": true,
+      "reason": "test_exec_check: stub pass for Python sample '2_padded_coverage'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+    }
+  },
+  "verdict": {
+    "verdict": "ungrounded",
+    "checks": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 22-31 overlap with diff-changed lines [25, 26, 27, 28] in 'auth/session.py'."
+      },
+      "consistency": {
+        "pass": false,
+        "reason": "consistency_check: description keywords ['authsessionpy', 'claim', 'from', 'mock', 'offline', 'parsed'] do NOT match diff symbols ['len', 'token'] in 'auth/session.py'. Overlap: []. The PR description may not match the actual diff (scope mismatch or wrong file)."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check: stub pass for Python sample '2_padded_coverage'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      }
+    },
+    "failing_checks": [
+      "consistency_check"
+    ],
+    "reasons": [
+      "consistency_check: description keywords ['authsessionpy', 'claim', 'from', 'mock', 'offline', 'parsed'] do NOT match diff symbols ['len', 'token'] in 'auth/session.py'. Overlap: []. The PR description may not match the actual diff (scope mismatch or wrong file)."
+    ]
+  },
+  "explanation": "This PR is ungrounded because consistency_check failed: []. The PR description may not match the actual diff (scope mismatch or wrong file)."
+}

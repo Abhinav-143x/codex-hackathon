@@ -1,0 +1,9 @@
+{
+  "sample_name": "6_tflite_bounds_real",
+  "pr_description": "[TFLite] Add bounds check in MaxUnpooling2D indices validation. This change adds runtime validation for MaxUnpooling2D indices before using them to address into the output tensor. MaxUnpooling2D interprets each value in the indices tensor as a flattened position within the current output batch slice. The valid range is therefore 0 <= index < output_height * output_width * output_channels. Previously, the kernel validated the input and indices tensor shapes, but did not validate the actual runtime index values before using them as write offsets. Invalid values could be accepted during Invoke() and used to write outside the intended output batch slice. With this change, invalid index values fail fast with kTfLiteError and a diagnostic message instead of being used as output offsets.",
+  "ground_truth": "grounded",
+  "pr_url": "https://github.com/tensorflow/tensorflow/pull/120468",
+  "pr_number": 120468,
+  "repo": "tensorflow/tensorflow",
+  "notes": "Real, closed security hardening PR. Adds TF_LITE_ENSURE_MSG bounds validation before index writes. Test: bazel test //tensorflow/lite/kernels/perception:perception_ops_test --test_filter=MaxUnpoolingOpTest.InvalidIndexReturnsError"
+}

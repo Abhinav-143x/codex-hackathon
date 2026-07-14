@@ -1,0 +1,54 @@
+{
+  "sample_name": "3_mismatched_desc",
+  "run_timestamp": "2026-07-12T14:59:20.676640+00:00",
+  "elapsed_s": 0.0,
+  "pr_description": "Fix authentication bounds check: prevent out-of-bounds access in the token validator by adding strict length validation before the session lookup. This prevents buffer-overread in edge cases where malformed JWT tokens bypass the pre-filter.",
+  "claim": {
+    "bug_type": "OFFLINE_PARSED",
+    "file": "api/response_formatter.py",
+    "line_range": "14-25",
+    "description": "offline mock claim for api/response_formatter.py",
+    "confidence": 0.75,
+    "w_what": "Offline mock \u2014 check parsed from diff.",
+    "w_why": "Offline mode \u2014 no LLM call made.",
+    "w_impact": "Offline mode \u2014 no LLM call made.",
+    "w_evidence": "Diff file: api/response_formatter.py, hunk range: 14-25",
+    "w_who": "Offline mode."
+  },
+  "gate": {
+    "coverage": {
+      "pass": true,
+      "reason": "coverage_check: claimed lines 14-25 overlap with diff-changed lines [15, 16, 17, 18, 19] in 'api/response_formatter.py'."
+    },
+    "consistency": {
+      "pass": true,
+      "reason": "consistency_check: description keywords match diff symbols. Exact overlaps: ['from']. Partial: ['from\u2248from']."
+    },
+    "test_exec": {
+      "pass": true,
+      "reason": "test_exec_check: stub pass for Python sample '3_mismatched_desc'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+    }
+  },
+  "verdict": {
+    "verdict": "grounded",
+    "checks": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 14-25 overlap with diff-changed lines [15, 16, 17, 18, 19] in 'api/response_formatter.py'."
+      },
+      "consistency": {
+        "pass": true,
+        "reason": "consistency_check: description keywords match diff symbols. Exact overlaps: ['from']. Partial: ['from\u2248from']."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check: stub pass for Python sample '3_mismatched_desc'. Real test execution is only implemented for the protobuf Ruby sample (#5). Coverage and consistency checks are the active grounding mechanisms here."
+      }
+    },
+    "failing_checks": [],
+    "reasons": [
+      "All checks passed."
+    ]
+  },
+  "explanation": "All three deterministic Gate checks passed: coverage increased on the claimed lines, the description matches the diff's AST symbols, and the test suite executed correctly."
+}

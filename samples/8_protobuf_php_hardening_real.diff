@@ -1,0 +1,208 @@
+﻿diff --git a/php/ext/google/protobuf/array.c b/php/ext/google/protobuf/array.c
+index 0b37c47063543..661c0ac06aa3c 100644
+--- a/php/ext/google/protobuf/array.c
++++ b/php/ext/google/protobuf/array.c
+@@ -348,16 +348,19 @@ PHP_METHOD(RepeatedField, offsetSet) {
+     return;
+   }
+ 
++  if (index < 0 || (size_t)index > size) {
++    zend_error(E_USER_ERROR, "Element at index %ld doesn't exist.\n", index);
++    return;
++  }
++
+   if (!Convert_PhpToUpb(val, &msgval, intern->type, arena)) {
+     return;
+   }
+ 
+-  if (index > size) {
+-    zend_error(E_USER_ERROR, "Element at index %ld doesn't exist.\n", index);
+-  } else if (index == size) {
++  if ((size_t)index == size) {
+     upb_Array_Append(intern->array, msgval, Arena_Get(&intern->arena));
+   } else {
+-    upb_Array_Set(intern->array, index, msgval);
++    upb_Array_Set(intern->array, (size_t)index, msgval);
+   }
+ }
+ 
+diff --git a/src/google/protobuf/compiler/php/generator_unittest.cc b/src/google/protobuf/compiler/php/generator_unittest.cc
+index 79d4b10faaeaf..0651e24d187d7 100644
+--- a/src/google/protobuf/compiler/php/generator_unittest.cc
++++ b/src/google/protobuf/compiler/php/generator_unittest.cc
+@@ -5,12 +5,13 @@
+ // license that can be found in the LICENSE file or at
+ // https://developers.google.com/open-source/licenses/bsd
+ 
++#include <gtest/gtest.h>
++
+ #include <memory>
+ 
+-#include "google/protobuf/descriptor.pb.h"
+-#include <gtest/gtest.h>
+ #include "google/protobuf/compiler/command_line_interface_tester.h"
+ #include "google/protobuf/compiler/php/php_generator.h"
++#include "google/protobuf/descriptor.pb.h"
+ 
+ namespace google {
+ namespace protobuf {
+@@ -105,6 +106,68 @@ TEST_F(PhpGeneratorTest, ClosedEnumError) {
+   ExpectErrorSubstring("Can't generate PHP code for closed enum Foo");
+ }
+ 
++TEST_F(PhpGeneratorTest, InvalidPhpNamespaceError) {
++  CreateTempFile("foo.proto",
++                 R"schema(
++    syntax = "proto3";
++    option php_namespace = "Foo\\Bad-Name";
++    message Foo {
++      int32 bar = 1;
++    })schema");
++
++  RunProtoc(
++      "protocol_compiler --proto_path=$tmpdir --php_out=$tmpdir foo.proto");
++
++  ExpectErrorSubstring("Invalid php_namespace option");
++}
++
++TEST_F(PhpGeneratorTest, InvalidPhpMetadataNamespaceError) {
++  CreateTempFile("foo.proto",
++                 R"schema(
++    syntax = "proto3";
++    option php_metadata_namespace = "GPBMetadata/Foo";
++    message Foo {
++      int32 bar = 1;
++    })schema");
++
++  RunProtoc(
++      "protocol_compiler --proto_path=$tmpdir --php_out=$tmpdir foo.proto");
++
++  ExpectErrorSubstring("Invalid php_metadata_namespace option");
++}
++
++TEST_F(PhpGeneratorTest, PhpMetadataRootNamespaceAllowed) {
++  CreateTempFile("root_metadata.proto",
++                 R"schema(
++    syntax = "proto3";
++    option php_metadata_namespace = "\\";
++    message Foo {
++      int32 bar = 1;
++    })schema");
++
++  RunProtoc(
++      "protocol_compiler --proto_path=$tmpdir --php_out=$tmpdir "
++      "root_metadata.proto");
++
++  ExpectNoErrors();
++}
++
++TEST_F(PhpGeneratorTest, PhpNamespaceOptionsAllowed) {
++  CreateTempFile("foo.proto",
++                 R"schema(
++    syntax = "proto3";
++    option php_namespace = "Php\\Test";
++    option php_metadata_namespace = "Metadata\\Php\\Test";
++    message Foo {
++      int32 bar = 1;
++    })schema");
++
++  RunProtoc(
++      "protocol_compiler --proto_path=$tmpdir --php_out=$tmpdir foo.proto");
++
++  ExpectNoErrors();
++}
++
+ TEST_F(PhpGeneratorTest, ImportPublic) {
+   CreateTempFile("common.proto",
+                  R"schema(
+diff --git a/src/google/protobuf/compiler/php/php_generator.cc b/src/google/protobuf/compiler/php/php_generator.cc
+index a6cd8d4b5d760..efde95fe4f4b5 100644
+--- a/src/google/protobuf/compiler/php/php_generator.cc
++++ b/src/google/protobuf/compiler/php/php_generator.cc
+@@ -124,6 +124,76 @@ std::string ConstantNamePrefix(absl::string_view classname) {
+   return "";
+ }
+ 
++bool IsPhpIdentifierStart(char c) { return absl::ascii_isalpha(c) || c == '_'; }
++
++bool IsPhpIdentifierPart(char c) { return absl::ascii_isalnum(c) || c == '_'; }
++
++bool IsValidPhpNamespace(absl::string_view name, bool allow_root_namespace) {
++  if (name.empty()) {
++    return true;
++  }
++  if (allow_root_namespace && name == "\\") {
++    return true;
++  }
++
++  bool segment_start = true;
++  for (char c : name) {
++    if (c == '\\') {
++      if (segment_start) {
++        return false;
++      }
++      segment_start = true;
++      continue;
++    }
++    if (segment_start) {
++      if (!IsPhpIdentifierStart(c)) {
++        return false;
++      }
++      segment_start = false;
++      continue;
++    }
++    if (!IsPhpIdentifierPart(c)) {
++      return false;
++    }
++  }
++
++  return !segment_start;
++}
++
++bool ValidatePhpNamespaceOption(const FileDescriptor* file,
++                                absl::string_view option_name,
++                                absl::string_view option_value,
++                                bool allow_root_namespace, std::string* error) {
++  if (IsValidPhpNamespace(option_value, allow_root_namespace)) {
++    return true;
++  }
++
++  *error =
++      absl::StrCat("Invalid ", option_name, " option \"",
++                   absl::CEscape(option_value), "\" in file ", file->name(),
++                   ": expected PHP identifiers separated by "
++                   "backslashes.\n");
++  return false;
++}
++
++bool ValidatePhpOptions(const FileDescriptor* file, std::string* error) {
++  if (file->options().has_php_namespace() &&
++      !ValidatePhpNamespaceOption(file, "php_namespace",
++                                  file->options().php_namespace(), false,
++                                  error)) {
++    return false;
++  }
++
++  if (file->options().has_php_metadata_namespace() &&
++      !ValidatePhpNamespaceOption(file, "php_metadata_namespace",
++                                  file->options().php_metadata_namespace(),
++                                  true, error)) {
++    return false;
++  }
++
++  return true;
++}
++
+ template <typename DescriptorType>
+ std::string RootPhpNamespace(const DescriptorType* desc,
+                              const Options& options) {
+@@ -2212,6 +2282,9 @@ bool Generator::Generate(const FileDescriptor* file, const Options& options,
+         "Can only generate PHP code for google/protobuf/descriptor.proto.\n";
+     return false;
+   }
++  if (!ValidatePhpOptions(file, error)) {
++    return false;
++  }
+ 
+   return GenerateFile(file, options, generator_context, error);
+ }

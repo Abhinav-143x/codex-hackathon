@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prgg"
+version = "0.1.0"
+description = "PR Grounding Gate — deterministic verification of AI-generated PR claims"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Abhinav"}]
+keywords = ["ai", "code-review", "pull-request", "grounding", "security", "llm"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Quality Assurance",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "typer>=0.12",
+    "keyring>=25",
+    "requests>=2.31",
+    "unidiff>=0.7",
+    "coverage>=7",
+    "fastmcp>=3",
+    "tree-sitter-language-pack>=1.0",
+    "openai>=1.0",
+]
+
+[project.optional-dependencies]
+ocr = ["pytesseract", "Pillow"]
+dev = ["pytest", "ruff", "black"]
+
+[project.scripts]
+prgg = "cli:main"
+
+[project.urls]
+"Source" = "https://github.com/Abhinav-143x/codex-hackathon"
+
+[tool.setuptools]
+py-modules = [
+    "cli",
+    "config",
+    "explainer",
+    "export_runs",
+    "fetch_pr",
+    "github_commenter",
+    "logging_agent",
+    "mcp_server",
+    "proposer",
+    "run_sample",
+    "verdict",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["gate*", "demo_ui*", "benchmark*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+python_files = ["tests/test_*.py", "tests/*_test.py"]
+testpaths = ["tests"]

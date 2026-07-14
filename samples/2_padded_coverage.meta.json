@@ -1,0 +1,7 @@
+{
+  "sample_name": "2_padded_coverage",
+  "pr_description": "Fix session token validation: add guard for empty tokens and tokens shorter than 8 characters in validate_session_token(). This prevents invalid tokens from reaching the session store lookup.",
+  "ground_truth": "ungrounded",
+  "expected_failing_check": "coverage_check",
+  "notes": "The new tests (test_helpers.py) only exercise safe_divide in math_ops.py, NOT validate_session_token in auth/session.py. Coverage on the claimed lines (22-25 of auth/session.py) does not increase. This is the padded-test anti-pattern."
+}

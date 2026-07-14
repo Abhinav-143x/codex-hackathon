@@ -1,0 +1,8 @@
+{
+  "sample_name": "5_protobuf_ruby_real",
+  "pr_description": "Ruby: Fix enum_getter to return nil instead of raising on missing enum value. Previously, when the key was not found, enum_module.constants.select{}.first returned nil, but if enum_module itself was nil (e.g. in test environments where the descriptor pool hasn't been initialized), the call would raise a NoMethodError. This adds an explicit nil guard before calling .constants, and an explicit empty-array check before calling .first, making the nil return explicit and documented rather than accidental.",
+  "ground_truth": "grounded",
+  "pr_url": "https://github.com/protocolbuffers/protobuf/pull/27848",
+  "notes": "Real, merged PR by the workspace owner. Copybara-merged into the protobuf main codebase. All Gate checks should pass: (1) coverage increases on lines 150-156 (the new guards), (2) description matches diff symbols (enum_getter, nil, constants, matching, respond_to, empty), (3) test_exec_check runs real Ruby test: ruby -Ilib -Itests tests/basic.rb --name=test_enum_getter",
+  "test_command": "ruby -Ilib -Itests tests/basic.rb --name=test_enum_getter"
+}

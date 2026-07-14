@@ -1,0 +1,6 @@
+{
+  "sample_name": "1_clean_grounded",
+  "pr_description": "Fix ZeroDivisionError in safe_divide: add explicit guard that raises ValueError with a descriptive message when denominator is zero. Previously, callers received a bare ZeroDivisionError with no context about which arguments caused it.",
+  "ground_truth": "grounded",
+  "notes": "All three Gate checks should pass. Coverage increases on lines 11-15 (the new guard). Description matches the diff (safe_divide, denominator, ValueError)."
+}

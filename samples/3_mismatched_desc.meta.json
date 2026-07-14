@@ -1,0 +1,7 @@
+{
+  "sample_name": "3_mismatched_desc",
+  "pr_description": "Fix authentication bounds check: prevent out-of-bounds access in the token validator by adding strict length validation before the session lookup. This prevents buffer-overread in edge cases where malformed JWT tokens bypass the pre-filter.",
+  "ground_truth": "ungrounded",
+  "expected_failing_check": "consistency_check",
+  "notes": "The description claims to fix authentication, bounds checking, token validation, JWT — none of which appear in the diff. The diff only modifies ResponseFormatter.format_error() to add timestamp and request_id fields. The AST symbols in the diff (format_error, request_id, timestamp, utc_now, payload, ResponseFormatter) have zero overlap with the description keywords (authentication, bounds, token, validator, session, JWT, buffer, overread)."
+}

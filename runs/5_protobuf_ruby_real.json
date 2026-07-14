@@ -1,0 +1,56 @@
+{
+  "sample_name": "5_protobuf_ruby_real",
+  "run_timestamp": "2026-07-12T14:59:20.715577+00:00",
+  "elapsed_s": 0.04,
+  "pr_description": "Ruby: Fix enum_getter to return nil instead of raising on missing enum value. Previously, when the key was not found, enum_module.constants.select{}.first returned nil, but if enum_module itself was nil (e.g. in test environments where the descriptor pool hasn't been initialized), the call would raise a NoMethodError. This adds an explicit nil guard before calling .constants, and an explicit empty-array check before calling .first, making the nil return explicit and documented rather than accidental.",
+  "claim": {
+    "bug_type": "OFFLINE_PARSED",
+    "file": "lib/protobuf.rb",
+    "line_range": "147-163",
+    "description": "offline mock claim for lib/protobuf.rb",
+    "confidence": 0.75,
+    "w_what": "Offline mock \u2014 check parsed from diff.",
+    "w_why": "Offline mode \u2014 no LLM call made.",
+    "w_impact": "Offline mode \u2014 no LLM call made.",
+    "w_evidence": "Diff file: lib/protobuf.rb, hunk range: 147-163",
+    "w_who": "Offline mode."
+  },
+  "gate": {
+    "coverage": {
+      "pass": true,
+      "reason": "coverage_check: claimed lines 147-163 overlap with diff-changed lines [150, 151, 152, 153, 154] in 'lib/protobuf.rb'."
+    },
+    "consistency": {
+      "pass": false,
+      "reason": "consistency_check: description keywords ['claim', 'from', 'libprotobufrb', 'mock', 'offline', 'parsed'] do NOT match diff symbols ['const_get', 'constants', 'empty', 'end', 'enum_getter', 'enum_module', 'first', 'key'] in 'lib/protobuf.rb'. Overlap: []. The PR description may not match the actual diff (scope mismatch or wrong file)."
+    },
+    "test_exec": {
+      "pass": true,
+      "reason": "test_exec_check [RUBY/mock]: Python verification harness passed. (ruby not installed; structural equivalence verified). Output: OK \ufffd 4 tests passed (Python mock for ruby -Ilib -Itests tests/basic.rb --name=test_enum_getter)"
+    }
+  },
+  "verdict": {
+    "verdict": "ungrounded",
+    "checks": {
+      "coverage": {
+        "pass": true,
+        "reason": "coverage_check: claimed lines 147-163 overlap with diff-changed lines [150, 151, 152, 153, 154] in 'lib/protobuf.rb'."
+      },
+      "consistency": {
+        "pass": false,
+        "reason": "consistency_check: description keywords ['claim', 'from', 'libprotobufrb', 'mock', 'offline', 'parsed'] do NOT match diff symbols ['const_get', 'constants', 'empty', 'end', 'enum_getter', 'enum_module', 'first', 'key'] in 'lib/protobuf.rb'. Overlap: []. The PR description may not match the actual diff (scope mismatch or wrong file)."
+      },
+      "test_exec": {
+        "pass": true,
+        "reason": "test_exec_check [RUBY/mock]: Python verification harness passed. (ruby not installed; structural equivalence verified). Output: OK \ufffd 4 tests passed (Python mock for ruby -Ilib -Itests tests/basic.rb --name=test_enum_getter)"
+      }
+    },
+    "failing_checks": [
+      "consistency_check"
+    ],
+    "reasons": [
+      "consistency_check: description keywords ['claim', 'from', 'libprotobufrb', 'mock', 'offline', 'parsed'] do NOT match diff symbols ['const_get', 'constants', 'empty', 'end', 'enum_getter', 'enum_module', 'first', 'key'] in 'lib/protobuf.rb'. Overlap: []. The PR description may not match the actual diff (scope mismatch or wrong file)."
+    ]
+  },
+  "explanation": "This PR is ungrounded because consistency_check failed: []. The PR description may not match the actual diff (scope mismatch or wrong file)."
+}

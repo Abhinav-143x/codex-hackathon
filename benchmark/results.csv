@@ -1,0 +1,2 @@
+cve_id,verdict,bench_result,failing_checks,claim_bug_type,coverage,consistency,test_exec,blind_spot,invisible_unicode,ground_truth,correct
+CVE-2023-32681,grounded,confirmed,,OFFLINE_PARSED,True,True,True,True,True,confirmed,True

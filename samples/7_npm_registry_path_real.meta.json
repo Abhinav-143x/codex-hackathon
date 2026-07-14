@@ -1,0 +1,9 @@
+{
+  "sample_name": "7_npm_registry_path_real",
+  "pr_description": "fix: validate registry path for allow-remote tarball exception. Tighten the registry-mediated tarball exception used when extracting registry dependencies under allow-remote. Previously Arborist treated a resolved tarball as registry-mediated when its hostname matched the selected registry hostname. That allowed same-host sibling paths to bypass allow-remote=none for path-qualified registries, for example: registry https://registry.example.com/npm/, resolved tarball https://registry.example.com/evil/pkg-1.0.0.tgz. This change requires the resolved tarball URL to match the registry origin AND remain under the selected registry path before overriding pacote's allowRemote handling.",
+  "ground_truth": "grounded",
+  "pr_url": "https://github.com/npm/cli/pull/9473",
+  "pr_number": 9473,
+  "repo": "npm/cli",
+  "notes": "Real, merged security fix PR. Adds path-prefix check in #isRegistryResolvedTarball — changes host-only match to origin+pathname.startsWith(registryPath). Prevents same-host path bypass of allow-remote=none."
+}

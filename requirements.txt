@@ -1,0 +1,8 @@
+coverage>=7
+fastmcp>=3
+keyring>=25
+openai>=1.0
+requests>=2.31
+tree-sitter-language-pack>=1.0
+typer>=0.12
+unidiff>=0.7
