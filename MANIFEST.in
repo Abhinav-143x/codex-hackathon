@@ -1,0 +1,4 @@
+include agent.md
+recursive-include samples *.diff *.meta.json *.rb *.py
+recursive-include demo_ui *.html
+recursive-include benchmark *.diff *.meta.json *.csv *.md

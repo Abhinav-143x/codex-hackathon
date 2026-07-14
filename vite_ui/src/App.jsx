@@ -150,6 +150,34 @@ const PROVIDER_LABELS = {
   anthropic: 'Anthropic',
 };
 
+const DOC_COMMANDS = [
+  ['Install from GitHub', 'pip install git+https://github.com/Abhinav-143x/codex-hackathon.git'],
+  ['Check the CLI', 'prgg --help'],
+  ['Configure keys', 'prgg init'],
+  ['Import BYOK config', 'prgg config import ./prgg-byok-config.json'],
+  ['Analyze a live PR', 'prgg check https://github.com/npm/cli/pull/9473'],
+  ['Adopt repo tests', 'prgg adopt https://github.com/psf/requests --pin-dir C:\\tmp\\prgg_repos\\requests --test-command "python -m pytest tests/test_utils.py::test_parse_header_links"'],
+];
+
+const DOC_STEPS = [
+  {
+    title: '1. Fetch PR evidence',
+    body: 'The CLI loads the PR body, state, diff, and metadata from GitHub. If anonymous fetches are limited, it can fall back to authenticated gh.',
+  },
+  {
+    title: '2. Ask the proposer for a claim',
+    body: 'A configured model extracts a structured claim and 5W fields. BYOK routing can rotate across Gemini, OpenRouter, OpenAI, and Anthropic pools.',
+  },
+  {
+    title: '3. Run deterministic gates',
+    body: 'Coverage, consistency, test execution, blind-spot, invisible Unicode, and 5W checks decide whether evidence is present.',
+  },
+  {
+    title: '4. Return a maintainer verdict',
+    body: 'The output is grounded, ungrounded, needs-review, or error, with reasons that explain exactly what evidence passed or failed.',
+  },
+];
+
 function asList(value) {
   return String(value || '')
     .split(',')
@@ -927,6 +955,82 @@ function ConfigBuilder() {
   );
 }
 
+function DocsPage() {
+  return (
+    <section className="docs-shell">
+      <div className="docs-hero">
+        <div>
+          <span className="eyebrow">Documentation</span>
+          <h1>Install the CLI. Verify a PR. Show the evidence.</h1>
+          <p>Use this page for judges or teammates who want the exact operator flow after seeing the demo board.</p>
+        </div>
+        <div className="docs-status-card">
+          <span>Current demo status</span>
+          <strong>GitHub + Vercel live</strong>
+          <p>CLI package metadata, BYOK routing, real PR samples, and deterministic gate checks are included.</p>
+        </div>
+      </div>
+
+      <div className="docs-grid">
+        <section className="doc-panel">
+          <div className="doc-panel-head">
+            <span className="eyebrow">CLI reference</span>
+            <h2>Copy-ready commands</h2>
+          </div>
+          <div className="command-list">
+            {DOC_COMMANDS.map(([label, command]) => (
+              <div className="command-card" key={label}>
+                <strong>{label}</strong>
+                <code>{command}</code>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="doc-panel">
+          <div className="doc-panel-head">
+            <span className="eyebrow">How it works</span>
+            <h2>Integration flow</h2>
+          </div>
+          <div className="flow-list">
+            {DOC_STEPS.map((step) => (
+              <article className="flow-card" key={step.title}>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <section className="doc-panel doc-wide">
+        <div className="doc-panel-head">
+          <span className="eyebrow">What to say live</span>
+          <h2>Demo script</h2>
+        </div>
+        <div className="script-grid">
+          <div>
+            <strong>Pitch line</strong>
+            <p>AI reviewers make claims. PR Grounding Gate checks whether those claims are actually supported by code, tests, and repository evidence.</p>
+          </div>
+          <div>
+            <strong>CLI proof</strong>
+            <p>Run <code>prgg check &lt;PR URL&gt;</code>. The model proposes a claim, but deterministic checks produce the verdict.</p>
+          </div>
+          <div>
+            <strong>BYOK proof</strong>
+            <p>Use the BYOK tab to generate a config with any number of provider keys, then import it locally with the CLI.</p>
+          </div>
+          <div>
+            <strong>Honest limitation</strong>
+            <p>The deployed web app is a polished static demo; full hosted live analysis needs a small backend API around the CLI pipeline.</p>
+          </div>
+        </div>
+      </section>
+    </section>
+  );
+}
+
 function App() {
   const runs = useMemo(() => {
     return [...runsData].sort((a, b) => {
@@ -941,13 +1045,25 @@ function App() {
 
   return (
     <main className="app-shell">
-      <nav className="top-tabs" aria-label="Primary">
-        <button className={view === 'demo' ? 'active' : ''} onClick={() => setView('demo')} type="button">Demo Board</button>
-        <button className={view === 'analyze' ? 'active' : ''} onClick={() => setView('analyze')} type="button">Analyze PR</button>
-        <button className={view === 'byok' ? 'active' : ''} onClick={() => setView('byok')} type="button">BYOK Config</button>
-      </nav>
+      <header className="product-bar">
+        <div className="product-mark">PRGG</div>
+        <div className="product-title">
+          <strong>PR Grounding Gate</strong>
+          <span>Deterministic evidence for AI-generated pull requests</span>
+        </div>
+        <nav className="top-tabs" aria-label="Primary">
+          <button className={view === 'demo' ? 'active' : ''} onClick={() => setView('demo')} type="button">Demo</button>
+          <button className={view === 'analyze' ? 'active' : ''} onClick={() => setView('analyze')} type="button">Analyze</button>
+          <button className={view === 'byok' ? 'active' : ''} onClick={() => setView('byok')} type="button">BYOK</button>
+          <button className={view === 'docs' ? 'active' : ''} onClick={() => setView('docs')} type="button">Docs</button>
+        </nav>
+        <div className="product-links">
+          <a href="https://github.com/Abhinav-143x/codex-hackathon" rel="noreferrer" target="_blank">GitHub</a>
+          <a href="https://viteui-one.vercel.app" rel="noreferrer" target="_blank">Live</a>
+        </div>
+      </header>
 
-      {view === 'byok' ? <ConfigBuilder /> : view === 'demo' ? (
+      {view === 'docs' ? <DocsPage /> : view === 'byok' ? <ConfigBuilder /> : view === 'demo' ? (
         <DemoBoard runs={runs} selectedRun={selectedRun} onSelect={setSelectedId} />
       ) : (
         <Analyzer runs={runs} selectedRun={selectedRun} onSelect={setSelectedId} />

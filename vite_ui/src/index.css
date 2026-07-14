@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root {
-  --bg: #eef1f4;
+  --bg: #e9edf1;
   --ink: #171b1f;
   --muted: #65717e;
   --panel: #ffffff;
@@ -17,6 +17,7 @@
   --red-bg: #ffe8ea;
   --green-bg: #e5f6ec;
   --shadow: 0 18px 44px rgba(23, 27, 31, 0.12);
+  --shadow-tight: 0 8px 22px rgba(23, 27, 31, 0.10);
 }
 
 * {
@@ -51,13 +52,67 @@ button {
   padding: 28px 0 40px;
 }
 
+.product-bar {
+  position: sticky;
+  top: 10px;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 54px minmax(220px, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-tight);
+  backdrop-filter: blur(14px);
+}
+
+.product-mark {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: #111820;
+  border-radius: 4px;
+  font-family: 'IBM Plex Mono', Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.product-title {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.product-title strong,
+.product-title span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-title strong {
+  font-size: 1.02rem;
+}
+
+.product-title span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 .top-tabs {
   display: inline-flex;
   gap: 4px;
-  margin-bottom: 14px;
+  margin-bottom: 0;
   padding: 4px;
-  background: var(--panel);
+  background: var(--panel-2);
   border: 1px solid var(--line);
+  border-radius: 6px;
 }
 
 .top-tabs button {
@@ -75,6 +130,31 @@ button {
   color: #fff;
 }
 
+.product-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.product-links a {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--blue);
+  text-decoration: none;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  padding: 0 10px;
+  font-weight: 800;
+  font-size: 0.82rem;
+}
+
+.product-links a:hover {
+  border-color: var(--blue);
+  background: #eef4ff;
+}
+
 .evaluator {
   display: grid;
   grid-template-columns: minmax(320px, 0.92fr) minmax(460px, 1.08fr);
@@ -84,6 +164,181 @@ button {
   background: var(--panel);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
+}
+
+.docs-shell {
+  display: grid;
+  gap: 16px;
+}
+
+.docs-hero {
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) minmax(280px, 0.38fr);
+  gap: 20px;
+  align-items: stretch;
+  padding: 30px;
+  color: #fff;
+  background:
+    linear-gradient(135deg, rgba(22, 93, 255, 0.86), rgba(17, 24, 32, 0.98)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0 1px, transparent 1px 30px);
+  border: 1px solid #0d2d79;
+  box-shadow: var(--shadow);
+}
+
+.docs-hero .eyebrow {
+  color: #b8d0ff;
+}
+
+.docs-hero h1 {
+  margin: 5px 0 10px;
+  max-width: 900px;
+  font-size: clamp(2.25rem, 4.4vw, 4.8rem);
+  line-height: 0.94;
+}
+
+.docs-hero p {
+  max-width: 760px;
+  margin: 0;
+  color: #d9e5ff;
+  font-size: 1.03rem;
+}
+
+.docs-status-card {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  min-height: 190px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.docs-status-card span {
+  color: #b8d0ff;
+  font-family: 'IBM Plex Mono', Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.docs-status-card strong {
+  font-size: 1.45rem;
+  line-height: 1.1;
+}
+
+.docs-grid {
+  display: grid;
+  grid-template-columns: minmax(420px, 0.54fr) minmax(360px, 0.46fr);
+  gap: 16px;
+}
+
+.doc-panel {
+  min-width: 0;
+  padding: 18px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-tight);
+}
+
+.doc-panel-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.doc-panel-head h2 {
+  margin: 0;
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  line-height: 1;
+}
+
+.command-list,
+.flow-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.command-card {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+  padding: 13px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+}
+
+.command-card strong {
+  color: var(--ink);
+}
+
+.command-card code,
+.script-grid code {
+  display: block;
+  max-width: 100%;
+  overflow: auto;
+  white-space: nowrap;
+  color: #d7e2ff;
+  background: #101820;
+  border: 1px solid #26384a;
+  border-radius: 4px;
+  padding: 10px;
+  font-family: 'IBM Plex Mono', Consolas, monospace;
+  font-size: 0.78rem;
+}
+
+.flow-card {
+  min-width: 0;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+
+.flow-card h3,
+.flow-card p {
+  margin: 0;
+}
+
+.flow-card h3 {
+  font-size: 1rem;
+}
+
+.flow-card p {
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.42;
+}
+
+.doc-wide {
+  box-shadow: none;
+}
+
+.script-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.script-grid div {
+  min-width: 0;
+  padding: 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+}
+
+.script-grid strong {
+  display: block;
+}
+
+.script-grid p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  line-height: 1.42;
 }
 
 .demo-hero {
@@ -1310,8 +1565,28 @@ button {
   .workspace,
   .byok-hero,
   .byok-grid,
-  .five-w-grid {
+  .five-w-grid,
+  .docs-hero,
+  .docs-grid,
+  .script-grid {
     grid-template-columns: 1fr;
+  }
+
+  .product-bar {
+    grid-template-columns: 46px minmax(0, 1fr);
+  }
+
+  .top-tabs,
+  .product-links {
+    grid-column: 1 / -1;
+  }
+
+  .top-tabs {
+    width: 100%;
+  }
+
+  .top-tabs button {
+    flex: 1 1 0;
   }
 
   .candidate-grid {
@@ -1330,8 +1605,18 @@ button {
     padding-top: 9px;
   }
 
-  .evaluator {
+  .evaluator,
+  .docs-hero {
     padding: 18px;
+  }
+
+  .product-bar {
+    top: 4px;
+    padding: 8px;
+  }
+
+  .product-links a {
+    flex: 1 1 0;
   }
 
   .input-rail,

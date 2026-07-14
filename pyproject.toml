@@ -40,6 +40,7 @@ prgg = "cli:main"
 "Source" = "https://github.com/Abhinav-143x/codex-hackathon"
 
 [tool.setuptools]
+include-package-data = true
 py-modules = [
     "cli",
     "config",
@@ -57,6 +58,17 @@ py-modules = [
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["gate*", "demo_ui*", "benchmark*"]
+
+[tool.setuptools.package-data]
+"*" = [
+    "agent.md",
+    "samples/*.diff",
+    "samples/*.meta.json",
+    "samples/protobuf_ruby/lib/*.rb",
+    "samples/protobuf_ruby/tests/*.rb",
+    "samples/protobuf_ruby/*.py",
+    "demo_ui/*.html",
+]
 
 [tool.ruff]
 line-length = 100
